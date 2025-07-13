@@ -25,4 +25,19 @@ input.small-input { width: auto; }
 #combType {
   width: 200px;
 }
+
+/* Start time input width */
+#startTime {
+  width: 200px;
+}
+
+/* Finish time input width */
+#finishTime {
+  width: 200px;
+}
+
+/* Hours worked input width */
+#hoursWorked {
+  width: 200px;
+}
 #add-stand-btn { margin-top: 10px; padding: 8px 12px; background: #444; color: #fff; border: none; cursor: pointer; }
