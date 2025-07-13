@@ -10,7 +10,7 @@ function createRow(runIndex) {
         row.innerHTML += `<td><input type="number" value="" onchange="updateTotals()"></td>`;
     }
     row.innerHTML += `<td class="run-total">0</td>`;
-   row.innerHTML += `<td><input type="text" list="sheepTypes" placeholder="Sheep Type"></td>`;
+    row.innerHTML += `<td class="sheep-type"><input type="text" list="sheepTypes" placeholder="Sheep Type"></td>`;
     return row;
 }
 
