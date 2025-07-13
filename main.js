@@ -121,6 +121,35 @@ function updateTotals() {
         subtotalRow.children[i].innerText = colTotal;
     }
     subtotalRow.children[numStands + 1].innerText = dailyTotal;
+    updateSheepTypeTotals();
+}
+
+function updateSheepTypeTotals() {
+    const tbody = document.getElementById('tallyBody');
+    const totals = {};
+    let grandTotal = 0;
+    tbody.querySelectorAll('tr').forEach(row => {
+        const typeInput = row.querySelector('.sheep-type input');
+        if (!typeInput) return;
+        const type = typeInput.value.trim();
+        if (!type) return;
+        const runTotal = parseInt(row.querySelector('.run-total').innerText) || 0;
+        totals[type] = (totals[type] || 0) + runTotal;
+        grandTotal += runTotal;
+    });
+
+    const table = document.getElementById('sheepTypeTotalsTable');
+    if (!table) return;
+    const body = table.querySelector('tbody');
+    body.innerHTML = '';
+    Object.keys(totals).forEach(type => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${type}</td><td>${totals[type]}</td>`;
+        body.appendChild(tr);
+    });
+    const totalRow = document.createElement('tr');
+    totalRow.innerHTML = `<td>Total</td><td>${grandTotal}</td>`;
+    body.appendChild(totalRow);
 }
 
 // Initialize table with default rows
@@ -136,6 +165,7 @@ for (let i = 0; i < numStands; i++) {
     subtotalRow.appendChild(cell);
 }
 subtotalRow.innerHTML += `<td></td><td></td>`;
+updateTotals();
 
 function calculateHoursWorked() {
     const startInput = document.getElementById("startTime");
@@ -209,6 +239,7 @@ document.addEventListener('input', function(e) {
     }
      if (e.target.matches('#tallyBody td.sheep-type input[type="text"]')) {
         adjustSheepTypeWidth(e.target);
+         updateSheepTypeTotals();
     }
 if (e.target.matches('#shedStaffTable input[type="text"]')) {
         adjustShedStaffNameWidth(e.target);
