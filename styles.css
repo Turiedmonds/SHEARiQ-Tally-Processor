@@ -95,12 +95,18 @@ input.small-input { width: auto; }
 
 #tallyTable td.sheep-type input {
   width: auto;
- min-width: 6ch; 
+  min-width: 8ch;
+  max-width: 100%;
+  padding-right: 4px;
+  box-sizing: border-box;
 }
 
 #headerRow input[type="text"] {
   width: fit-content;
-  min-width: 6ch;
+  min-width: 8ch;
+  max-width: 100%;
+  padding-right: 4px;
+  box-sizing: border-box;
   max-width: 100%;
   padding: 4px 6px;
   box-sizing: content-box;
