@@ -4,7 +4,7 @@ const runs = 4;
 
 function createRow(runIndex) {
     const row = document.createElement("tr");
-    row.innerHTML = `<td>Run ${runIndex + 1}</td>`;
+    row.innerHTML = `<td>Count ${runIndex + 1}</td>`;
     for (let i = 0; i < numStands; i++) {
         row.innerHTML += `<td><input type="number" value="" onchange="updateTotals()"></td>`;
     }
