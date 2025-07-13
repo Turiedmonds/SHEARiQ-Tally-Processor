@@ -25,6 +25,62 @@ function adjustShedStaffHoursWidth(input) {
     input.style.width = (len + 1) + 'ch';
 }
 
+function getHistoryKey(input) {
+    return (input.name || input.placeholder || input.id || '').replace(/\s+/g, '_');
+}
+
+function applyInputHistory(input) {
+    if (!input || input.type !== 'text' || input.id === 'hoursWorked') return;
+    const key = getHistoryKey(input);
+    if (!key) return;
+
+    const existingId = input.getAttribute('list');
+    const listId = existingId || ('hist_' + key);
+    let list = document.getElementById(listId);
+    if (!list) {
+        list = document.createElement('datalist');
+        list.id = listId;
+        document.body.appendChild(list);
+    }
+    if (!existingId) input.setAttribute('list', listId);
+    try {
+        const items = JSON.parse(localStorage.getItem(key) || '[]');
+        const existingValues = new Set(Array.from(list.options).map(o => o.value));
+        if (!existingId) list.innerHTML = '';
+        if (Array.isArray(items)) {
+            items.forEach(v => {
+                if (!existingValues.has(v)) {
+                    const opt = document.createElement('option');
+                    opt.value = v;
+                    list.appendChild(opt);
+                }
+            });
+        }
+    } catch (e) {}
+
+    input.addEventListener('blur', () => {
+        const val = input.value.trim();
+        if (!val) return;
+        let arr;
+        try {
+            arr = JSON.parse(localStorage.getItem(key) || '[]');
+            if (!Array.isArray(arr)) arr = [];
+        } catch (e) {
+            arr = [];
+        }
+        if (!arr.includes(val)) {
+            arr.push(val);
+            localStorage.setItem(key, JSON.stringify(arr));
+            const exists = Array.from(list.options).some(o => o.value === val);
+            if (!exists) {
+                const opt = document.createElement('option');
+                opt.value = val;
+                list.appendChild(opt);
+            }
+        }
+    });
+}
+
 function formatTimeDisplay(h, m, use24) {
     const value = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
     if (use24) return value;
@@ -79,7 +135,10 @@ function createRow(runIndex) {
     row.innerHTML += `<td class="run-total">0</td>`;
     row.innerHTML += `<td class="sheep-type"><input type="text" list="sheepTypes" placeholder="Sheep Type"></td>`;
     const sheepInput = row.querySelector('.sheep-type input');
-    if (sheepInput) adjustSheepTypeWidth(sheepInput);
+   if (sheepInput) {
+        adjustSheepTypeWidth(sheepInput);
+        applyInputHistory(sheepInput);
+    }
     return row;
 }
 
@@ -89,7 +148,10 @@ function addStand() {
     const newHeader = document.createElement("th");
     newHeader.innerHTML = `Stand ${numStands}<br><input type="text" placeholder="Name">`;
     const input = newHeader.querySelector('input');
-    if (input) adjustStandNameWidth(input);
+   if (input) {
+        adjustStandNameWidth(input);
+        applyInputHistory(input);
+    }
     header.insertBefore(newHeader, header.children[header.children.length - 2]);
 
     const tallyBody = document.getElementById("tallyBody");
@@ -278,8 +340,9 @@ if (hours) {
     }
     document.querySelectorAll('#headerRow input[type="text"]').forEach(adjustStandNameWidth);
 document.querySelectorAll('#tallyBody td.sheep-type input[type="text"]').forEach(adjustSheepTypeWidth);
-document.querySelectorAll('#shedStaffTable input[type="text"]').forEach(adjustShedStaffNameWidth);
-document.querySelectorAll('#shedStaffTable input[type="number"]').forEach(adjustShedStaffHoursWidth);
+    document.querySelectorAll('#shedStaffTable input[type="text"]').forEach(adjustShedStaffNameWidth);
+    document.querySelectorAll('#shedStaffTable input[type="number"]').forEach(adjustShedStaffHoursWidth);
+    document.querySelectorAll('input[type="text"]').forEach(applyInputHistory);
 });
 
 document.addEventListener('input', function(e) {
@@ -309,7 +372,10 @@ function addShedStaff() {
     if (hours && hoursInput) {
         hoursInput.value = hours.value;
     }
-    if (nameInput) adjustShedStaffNameWidth(nameInput);
+    if (nameInput) {
+        adjustShedStaffNameWidth(nameInput);
+        applyInputHistory(nameInput);
+    }
     if (hoursInput) adjustShedStaffHoursWidth(hoursInput);
 }
 
