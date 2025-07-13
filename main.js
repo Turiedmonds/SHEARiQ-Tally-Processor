@@ -1,6 +1,7 @@
 const defaultStands = 6;
+const defaultRuns = 4;
 let numStands = defaultStands;
-let runs = 4;
+let runs = defaultRuns;
 
 function createRow(runIndex) {
     const row = document.createElement("tr");
@@ -40,6 +41,18 @@ function addCount() {
     runs++;
     updateTotals();
 }
+
+function removeCount() {
+    if (runs <= defaultRuns) return;
+
+    const body = document.getElementById("tallyBody");
+    if (body.lastElementChild) {
+        body.removeChild(body.lastElementChild);
+    }
+    runs--;
+    updateTotals();
+}
+
 
 function removeStand() {
     if (numStands <= defaultStands) return;
