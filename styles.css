@@ -85,6 +85,7 @@ input.small-input { width: auto; }
 
 #tallyTable td.sheep-type input {
   width: auto;
+ min-width: 6ch; 
 }
 
 #headerRow input[type="text"] {
