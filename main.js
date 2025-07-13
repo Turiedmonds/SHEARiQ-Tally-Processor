@@ -1,6 +1,6 @@
 const defaultStands = 6;
 let numStands = defaultStands;
-const runs = 4;
+let runs = 4;
 
 function createRow(runIndex) {
     const row = document.createElement("tr");
@@ -32,6 +32,13 @@ function addStand() {
     const cell = document.createElement("td");
     cell.innerText = "0";
     subtotalRow.insertBefore(cell, subtotalRow.children[subtotalRow.children.length - 2]);
+}
+
+function addCount() {
+    const body = document.getElementById("tallyBody");
+    body.appendChild(createRow(runs));
+    runs++;
+    updateTotals();
 }
 
 function removeStand() {
