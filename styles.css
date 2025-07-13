@@ -1,4 +1,4 @@
-body { font-family: Arial, sans-serif; background: #111; color: #fff; padding: 20px; }
+body { font-family: Arial, sans-serif; background: #111; color: #fff; padding: 20px; overflow-x: auto; }
 /* Ensure all labels share the same base font size */
 label {
   font-size: 14px;
@@ -12,6 +12,11 @@ label[for="hoursWorked"] {
 }
 
 table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+#tallyTable {
+  table-layout: auto;
+  width: auto;
+  min-width: 100%;
+}
 th, td { border: 1px solid #555; padding: 8px; text-align: center; }
 th { background: #222; }
 input[type="number"], input[type="text"], select { width: 100%; padding: 6px; box-sizing: border-box; }
@@ -80,4 +85,9 @@ input.small-input { width: auto; }
 
 #tallyTable td.sheep-type input {
   width: auto;
+}
+
+#headerRow input[type="text"] {
+  width: auto;
+  min-width: 6ch;
 }
