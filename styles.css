@@ -53,14 +53,21 @@ input.small-input { width: auto; }
   width: 100px;
 }
 
-#add-stand-btn, #remove-stand-btn, #add-count-btn, #remove-count-btn {
+/* Shared styling for button rows */
+.button-row {
   margin-top: 10px;
+  display: flex;
+}
+
+.button-row button {
   padding: 8px 12px;
   background: #444;
   color: #fff;
   border: none;
   cursor: pointer;
 }
-#remove-stand-btn, #add-count-btn, #remove-count-btn {
+
+/* Space the second button in each row */
+.button-row button + button {
   margin-left: 10px;
 }
