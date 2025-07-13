@@ -99,8 +99,11 @@ input.small-input { width: auto; }
 }
 
 #headerRow input[type="text"] {
-  width: auto;
+  width: fit-content;
   min-width: 6ch;
+  max-width: 100%;
+  padding: 4px 6px;
+  box-sizing: content-box;
 }
 #shedStaffTable input[type="text"],
 #shedStaffTable input[type="number"] {
