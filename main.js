@@ -3,6 +3,11 @@ const defaultRuns = 4;
 let numStands = defaultStands;
 let runs = defaultRuns;
 
+function adjustStandNameWidth(input) {
+    const len = input.value.length || input.placeholder.length || 1;
+    input.style.width = (len + 1) + 'ch';
+}
+
 function createRow(runIndex) {
     const row = document.createElement("tr");
     row.innerHTML = `<td>Count ${runIndex + 1}</td>`;
@@ -19,6 +24,8 @@ function addStand() {
     const header = document.getElementById("headerRow");
     const newHeader = document.createElement("th");
     newHeader.innerHTML = `Stand ${numStands}<br><input type="text" placeholder="Name">`;
+    const input = newHeader.querySelector('input');
+    if (input) adjustStandNameWidth(input);
     header.insertBefore(newHeader, header.children[header.children.length - 2]);
 
     const tallyBody = document.getElementById("tallyBody");
@@ -154,4 +161,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const end = document.getElementById("finishTime");
     if (start) start.addEventListener("change", calculateHoursWorked);
     if (end) end.addEventListener("change", calculateHoursWorked);
+
+    document.querySelectorAll('#headerRow input[type="text"]').forEach(adjustStandNameWidth);
+});
+
+document.addEventListener('input', function(e) {
+    if (e.target.matches('#headerRow input[type="text"]')) {
+        adjustStandNameWidth(e.target);
+    }
 });
