@@ -10,7 +10,7 @@ function createRow(runIndex) {
         row.innerHTML += `<td><input type="number" value="" onchange="updateTotals()"></td>`;
     }
     row.innerHTML += `<td class="run-total">0</td>`;
-    row.innerHTML += `<td><select><option>Other</option><option>Long Tails</option><option>Uncrutched</option><option>Fly Blow</option><option>Wether Lambs</option><option>Ewe Lambs</option><option>Mixed Lambs</option><option>Merino Lambs</option><option>2nd Shear Ewes</option><option>Full Wool</option><option>Half Bred Ewes</option><option>1/4 Bred Ewes</option><option>Corridale Ewes</option><option>Merino Ewes</option><option>Merino Wethers</option><option>Rams</option><option>Stud Rams</option><option>Merino Rams</option><option>Merino Stud Rams</option></select></td>`;
+   row.innerHTML += `<td><input type="text" list="sheepTypes" placeholder="Sheep Type"></td>`;
     return row;
 }
 
