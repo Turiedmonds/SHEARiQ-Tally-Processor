@@ -1,4 +1,5 @@
-let numStands = 6;
+const defaultStands = 6;
+let numStands = defaultStands;
 const runs = 4;
 
 function createRow(runIndex) {
@@ -32,6 +33,26 @@ function addStand() {
     cell.innerText = "0";
     subtotalRow.insertBefore(cell, subtotalRow.children[subtotalRow.children.length - 2]);
 }
+
+function removeStand() {
+    if (numStands <= defaultStands) return;
+
+    const header = document.getElementById("headerRow");
+    header.removeChild(header.children[numStands]);
+
+    const tallyBody = document.getElementById("tallyBody");
+    for (let i = 0; i < runs; i++) {
+        const row = tallyBody.children[i];
+        row.removeChild(row.children[numStands]);
+    }
+
+    const subtotalRow = document.getElementById("subtotalRow");
+    subtotalRow.removeChild(subtotalRow.children[numStands]);
+
+    numStands--;
+    updateTotals();
+}
+
 
 function updateTotals() {
     const tbody = document.getElementById("tallyBody");
