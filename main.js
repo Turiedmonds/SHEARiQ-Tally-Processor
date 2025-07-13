@@ -3,6 +3,7 @@ const defaultRuns = 4;
 const minStands = 1;
 let numStands = defaultStands;
 let runs = defaultRuns;
+let is24HourFormat = true;
 
 function adjustStandNameWidth(input) {
     const len = input.value.length || input.placeholder.length || 1;
@@ -22,6 +23,51 @@ function adjustShedStaffNameWidth(input) {
 function adjustShedStaffHoursWidth(input) {
     const len = input.value.length || input.placeholder.length || 1;
     input.style.width = (len + 1) + 'ch';
+}
+
+function formatTimeDisplay(h, m, use24) {
+    const value = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    if (use24) return value;
+    let hour12 = h % 12;
+    if (hour12 === 0) hour12 = 12;
+    const suffix = h < 12 ? 'AM' : 'PM';
+    return `${hour12}:${String(m).padStart(2, '0')} ${suffix}`;
+}
+
+function generateTimeOptions() {
+    const startSelect = document.getElementById('startTime');
+    const finishSelect = document.getElementById('finishTime');
+    if (!startSelect || !finishSelect) return;
+    const startVal = startSelect.value;
+    const endVal = finishSelect.value;
+    startSelect.innerHTML = '';
+    finishSelect.innerHTML = '';
+    for (let h = 4; h <= 22; h++) {
+        for (let m = 0; m < 60; m += 15) {
+            const value = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+            const display = formatTimeDisplay(h, m, is24HourFormat);
+            const optStart = document.createElement('option');
+            optStart.value = value;
+            optStart.textContent = display;
+            startSelect.appendChild(optStart);
+            const optEnd = document.createElement('option');
+            optEnd.value = value;
+            optEnd.textContent = display;
+            finishSelect.appendChild(optEnd);
+        }
+    }
+    if (startVal) startSelect.value = startVal;
+    if (endVal) finishSelect.value = endVal;
+}
+
+function toggleTimeFormat() {
+    is24HourFormat = !is24HourFormat;
+    const btn = document.getElementById('timeFormatToggle');
+    if (btn) {
+        btn.textContent = is24HourFormat ? 'Switch to 12-hour format' : 'Switch to 24-hour format';
+    }
+    generateTimeOptions();
+    calculateHoursWorked();
 }
 
 function createRow(runIndex) {
@@ -218,9 +264,12 @@ function updateShedStaffHours(value) {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
+    generateTimeOptions();
     const start = document.getElementById("startTime");
     const end = document.getElementById("finishTime");
    const hours = document.getElementById("hoursWorked");
+    const toggle = document.getElementById('timeFormatToggle');
+    if (toggle) toggle.addEventListener('click', toggleTimeFormat);
     if (start) start.addEventListener("change", calculateHoursWorked);
     if (end) end.addEventListener("change", calculateHoursWorked);
 if (hours) {
