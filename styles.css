@@ -92,3 +92,8 @@ input.small-input { width: auto; }
   width: auto;
   min-width: 6ch;
 }
+#shedStaffTable input[type="text"],
+#shedStaffTable input[type="number"] {
+  width: auto;
+  min-width: 6ch;
+}
