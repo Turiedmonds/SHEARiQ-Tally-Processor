@@ -8,6 +8,11 @@ function adjustStandNameWidth(input) {
     input.style.width = (len + 1) + 'ch';
 }
 
+function adjustSheepTypeWidth(input) {
+    const len = input.value.length || input.placeholder.length || 1;
+    input.style.width = (len + 1) + 'ch';
+}
+
 function createRow(runIndex) {
     const row = document.createElement("tr");
     row.innerHTML = `<td>Count ${runIndex + 1}</td>`;
@@ -16,6 +21,8 @@ function createRow(runIndex) {
     }
     row.innerHTML += `<td class="run-total">0</td>`;
     row.innerHTML += `<td class="sheep-type"><input type="text" list="sheepTypes" placeholder="Sheep Type"></td>`;
+    const sheepInput = row.querySelector('.sheep-type input');
+    if (sheepInput) adjustSheepTypeWidth(sheepInput);
     return row;
 }
 
@@ -163,10 +170,14 @@ document.addEventListener("DOMContentLoaded", function () {
     if (end) end.addEventListener("change", calculateHoursWorked);
 
     document.querySelectorAll('#headerRow input[type="text"]').forEach(adjustStandNameWidth);
+document.querySelectorAll('#tallyBody td.sheep-type input[type="text"]').forEach(adjustSheepTypeWidth);
 });
 
 document.addEventListener('input', function(e) {
     if (e.target.matches('#headerRow input[type="text"]')) {
         adjustStandNameWidth(e.target);
+    }
+     if (e.target.matches('#tallyBody td.sheep-type input[type="text"]')) {
+        adjustSheepTypeWidth(e.target);
     }
 });
