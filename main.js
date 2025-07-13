@@ -1,4 +1,4 @@
-let numStands = 4;
+let numStands = 6;
 const runs = 4;
 
 function createRow(runIndex) {
