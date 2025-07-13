@@ -72,6 +72,16 @@ input.small-input { width: auto; }
   cursor: pointer;
 }
 
+.toggle-button {
+  padding: 8px 12px;
+  background: #444;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+
 /* Space the second button in each row */
 .button-row button + button {
   margin-left: 10px;
