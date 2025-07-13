@@ -1,4 +1,8 @@
 body { font-family: Arial, sans-serif; background: #111; color: #fff; padding: 20px; }
+/* Ensure all labels share the same base font size */
+label {
+  font-size: 14px;
+}
 table { border-collapse: collapse; width: 100%; margin-top: 20px; }
 th, td { border: 1px solid #555; padding: 8px; text-align: center; }
 th { background: #222; }
