@@ -3,6 +3,14 @@ body { font-family: Arial, sans-serif; background: #111; color: #fff; padding: 2
 label {
   font-size: 14px;
 }
+
+/* Ensure time entry labels use the same font size as other form labels */
+label[for="startTime"],
+label[for="finishTime"],
+label[for="hoursWorked"] {
+  font-size: 14px;
+}
+
 table { border-collapse: collapse; width: 100%; margin-top: 20px; }
 th, td { border: 1px solid #555; padding: 8px; text-align: center; }
 th { background: #222; }
