@@ -53,7 +53,7 @@ input.small-input { width: auto; }
   width: 100px;
 }
 
-#add-stand-btn, #remove-stand-btn, #add-count-btn {
+#add-stand-btn, #remove-stand-btn, #add-count-btn, #remove-count-btn {
   margin-top: 10px;
   padding: 8px 12px;
   background: #444;
@@ -61,6 +61,6 @@ input.small-input { width: auto; }
   border: none;
   cursor: pointer;
 }
-#remove-stand-btn, #add-count-btn {
+#remove-stand-btn, #add-count-btn, #remove-count-btn {
   margin-left: 10px;
 }
