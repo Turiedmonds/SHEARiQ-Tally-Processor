@@ -1,5 +1,6 @@
 const defaultStands = 6;
 const defaultRuns = 4;
+const minStands = 1;
 let numStands = defaultStands;
 let runs = defaultRuns;
 
@@ -69,7 +70,7 @@ function removeCount() {
 
 
 function removeStand() {
-    if (numStands <= defaultStands) return;
+     if (numStands <= minStands) return;
 
     const header = document.getElementById("headerRow");
     header.removeChild(header.children[numStands]);
