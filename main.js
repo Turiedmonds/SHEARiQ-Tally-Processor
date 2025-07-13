@@ -161,14 +161,28 @@ function calculateHoursWorked() {
     });
 
     output.value = totalHours > 0 ? totalHours.toFixed(2) : "0";
+updateShedStaffHours(output.value);
+}
+
+function updateShedStaffHours(value) {
+    const table = document.getElementById('shedStaffTable');
+    if (!table) return;
+    table.querySelectorAll('tr').forEach(row => {
+        const input = row.querySelector('td:nth-child(2) input');
+        if (input) input.value = value;
+    });
 }
 
 document.addEventListener("DOMContentLoaded", function () {
     const start = document.getElementById("startTime");
     const end = document.getElementById("finishTime");
+   const hours = document.getElementById("hoursWorked"); 
     if (start) start.addEventListener("change", calculateHoursWorked);
     if (end) end.addEventListener("change", calculateHoursWorked);
-
+if (hours) {
+        hours.addEventListener("input", () => updateShedStaffHours(hours.value));
+        updateShedStaffHours(hours.value);
+    }
     document.querySelectorAll('#headerRow input[type="text"]').forEach(adjustStandNameWidth);
 document.querySelectorAll('#tallyBody td.sheep-type input[type="text"]').forEach(adjustSheepTypeWidth);
 });
@@ -187,6 +201,11 @@ function addShedStaff() {
     const row = document.createElement('tr');
     row.innerHTML = `<td><input placeholder="Staff Name" type="text"/></td><td><input min="0" placeholder="0" step="0.1" type="number"/></td>`;
     body.appendChild(row);
+    const hours = document.getElementById('hoursWorked');
+    const input = row.querySelector('td:nth-child(2) input');
+    if (hours && input) {
+        input.value = hours.value;
+    }
 }
 
 function removeShedStaff() {
