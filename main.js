@@ -78,6 +78,7 @@ function applyInputHistory(input) {
                 list.appendChild(opt);
             }
         }
+         adjustStandNameWidth(input);
     });
 }
 
