@@ -188,3 +188,10 @@ function addShedStaff() {
     row.innerHTML = `<td><input placeholder="Staff Name" type="text"/></td><td><input min="0" placeholder="0" step="0.1" type="number"/></td>`;
     body.appendChild(row);
 }
+
+function removeShedStaff() {
+    const body = document.getElementById('shedStaffTable');
+    if (body.lastElementChild) {
+        body.removeChild(body.lastElementChild);
+    }
+}
