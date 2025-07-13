@@ -71,3 +71,13 @@ input.small-input { width: auto; }
 .button-row button + button {
   margin-left: 10px;
 }
+
+/* Auto-fit sheep type column */
+#tallyTable th.sheep-type,
+#tallyTable td.sheep-type {
+  white-space: nowrap;
+}
+
+#tallyTable td.sheep-type input {
+  width: auto;
+}
