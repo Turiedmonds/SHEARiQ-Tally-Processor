@@ -607,6 +607,92 @@ function saveData() {
     URL.revokeObjectURL(url);
 }
 
+function exportDailySummaryCSV() {
+    const data = collectExportData();
+
+    const optionSet = new Set(Array.from(document.querySelectorAll('#sheepTypes option')).map(o => o.value));
+
+    const shearerNames = data.stands.map(s => s.name);
+    const standTotals = new Array(shearerNames.length).fill(0);
+    const totalsByType = {};
+
+    data.shearerCounts.forEach(run => {
+        const type = optionSet.has(run.sheepType) ? run.sheepType : 'Other';
+        if (!totalsByType[type]) totalsByType[type] = new Array(shearerNames.length).fill(0);
+        run.stands.forEach((val, idx) => {
+            const num = parseInt(val) || 0;
+            totalsByType[type][idx] += num;
+            standTotals[idx] += num;
+        });
+    });
+
+    const activeIndices = [];
+    const activeNames = [];
+    standTotals.forEach((t, idx) => {
+        if (t > 0 || shearerNames[idx].trim()) {
+            activeIndices.push(idx);
+            activeNames.push(shearerNames[idx]);
+        }
+    });
+
+    const filteredTotals = {};
+    Object.keys(totalsByType).forEach(type => {
+        const arr = activeIndices.map(i => totalsByType[type][i]);
+        if (arr.some(v => v)) {
+            filteredTotals[type] = arr;
+        }
+    });
+
+    const activeStandTotals = activeIndices.map(i => standTotals[i]);
+    const overallTotal = activeStandTotals.reduce((a, b) => a + b, 0);
+
+    const rows = [];
+    const metadataRows = [
+        ['Station Name', data.stationName],
+        ['Date', data.date],
+        ['Team Leader', data.teamLeader],
+        ['Comb Type', data.combType],
+        ['Start Time', data.startTime],
+        ['Finish Time', data.finishTime],
+        ['Hours Worked', data.hoursWorked],
+        ['Time System', data.timeSystem]
+    ];
+    metadataRows.forEach(r => rows.push(r));
+    rows.push([]);
+
+    rows.push(['Shearer Totals']);
+    rows.push(['Sheep Type', ...activeNames, 'Total']);
+    Object.keys(filteredTotals).forEach(type => {
+        const arr = filteredTotals[type];
+        const total = arr.reduce((a, b) => a + b, 0);
+        rows.push([type, ...arr, total]);
+    });
+    rows.push(['Total Sheep', ...activeStandTotals, overallTotal]);
+    rows.push([]);
+
+    rows.push(['Shed Staff']);
+    rows.push(['Name', 'Hours Worked']);
+    data.shedStaff.forEach(s => rows.push([s.name, s.hours]));
+
+    const csv = rows.map(r => r.map(v => `"${String(v ?? '').replace(/"/g,'""')}"`).join(',')).join('\r\n');
+
+    let fileName = 'export.csv';
+    if (data.stationName && data.date) {
+        const parts = data.date.split('-');
+        if (parts.length === 3) fileName = `${data.stationName}_${parts[2]}-${parts[1]}-${parts[0]}.csv`;
+    }
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
 function loadPreviousSession() {
     const json = localStorage.getItem('sheariq_saved_session');
     if (!json) {
@@ -1067,5 +1153,5 @@ function exportDailySummaryExcel() {
 function showExportPrompt() {
     const useExcel = window.confirm('Export as Excel (.xlsx)? Click Cancel for CSV.');
     if (useExcel) exportDailySummaryExcel();
-    else exportCSV();
+    else exportDailySummaryCSV();
 }
