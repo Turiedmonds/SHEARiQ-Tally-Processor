@@ -3,6 +3,7 @@ const FILES_TO_CACHE = [
   'index.html',
   'styles.css',
   'main.js',
+  'xlsx.full.min.js',
   'logo.png',
   'manifest.json',
   'icon-192.png'
