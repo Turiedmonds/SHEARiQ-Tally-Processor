@@ -109,6 +109,15 @@ function generateTimeOptions() {
     const endVal = finishSelect.value;
     startSelect.innerHTML = '';
     finishSelect.innerHTML = '';
+     // Add blank option so the field appears empty until a time is chosen
+    const blankStart = document.createElement('option');
+    blankStart.value = '';
+    blankStart.textContent = '';
+    startSelect.appendChild(blankStart);
+    const blankEnd = document.createElement('option');
+    blankEnd.value = '';
+    blankEnd.textContent = '';
+    finishSelect.appendChild(blankEnd);
     for (let h = 4; h <= 22; h++) {
         for (let m = 0; m < 60; m += 15) {
             const value = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
