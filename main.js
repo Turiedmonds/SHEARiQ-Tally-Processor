@@ -1101,17 +1101,16 @@ function exportDailySummaryExcel() {
 
     const range = XLSX.utils.decode_range(ws['!ref']);
     const border = { style: 'thin', color: { rgb: '000000' } };
+    const colWidths = new Array(range.e.c - range.s.c + 1).fill(0);
     for (let R = range.s.r; R <= range.e.r; R++) {
         for (let C = range.s.c; C <= range.e.c; C++) {
             const cell = ws[XLSX.utils.encode_cell({ r: R, c: C })];
             if (!cell) continue;
             cell.s = cell.s || {};
             cell.s.border = { top: border, bottom: border, left: border, right: border };
-            if (typeof cell.v === 'number') {
-                cell.s.alignment = { horizontal: 'right' };
-            } else {
-                cell.s.alignment = { horizontal: 'center' };
-            }
+            cell.s.alignment = { horizontal: 'center' };
+            const text = cell.v != null ? String(cell.v) : '';
+            colWidths[C] = Math.max(colWidths[C], text.length);
         }
     }
 
@@ -1125,7 +1124,7 @@ function exportDailySummaryExcel() {
         }
     });
 
-    ws['!cols'] = Array.from({ length: activeNames.length + 2 }, () => ({ wch: 18 }));
+  ws['!cols'] = colWidths.map(w => ({ wch: Math.max(w + 2, 15) }));
 
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Summary');
