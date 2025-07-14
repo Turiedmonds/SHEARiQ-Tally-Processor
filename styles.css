@@ -118,10 +118,11 @@ input.small-input { width: auto; }
   box-sizing: content-box;
 }
 #shedStaffTable input[type="text"] {
-  width: auto;
-  min-width: 10ch;
-  padding-right: 20px;
-  box-sizing: border-box;
+ width: fit-content;
+  min-width: 14ch;
+  max-width: 100%;
+  padding-right: 4px;
+  box-sizing: content-box;
 }
 
 #shedStaffTable input[type="number"] {
