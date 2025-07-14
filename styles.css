@@ -56,6 +56,7 @@ input.small-input { width: auto; }
 /* Hours worked input width */
 #hoursWorked {
   width: 100px;
+   text-align: left;
 }
 
 /* Shared styling for button rows */
