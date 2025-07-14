@@ -14,7 +14,8 @@ function adjustStandNameWidth(input) {
 
 function adjustSheepTypeWidth(input) {
     const len = input.value.length || input.placeholder.length || 1;
-    input.style.width = (len + 1) + 'ch';
+    const width = Math.max(len + 4, 10);
+    input.style.width = width + 'ch';
 }
 
 function adjustShedStaffNameWidth(input) {
@@ -80,7 +81,19 @@ function applyInputHistory(input) {
                 list.appendChild(opt);
             }
         }
-         if (input.matches('#tallyBody td.sheep-type input[type="text"]')) {
+          if (input.matches('#tallyBody td.sheep-type input[type="text"]')) {
+            adjustSheepTypeWidth(input);
+        } else if (input.matches('#shedStaffTable input[type="text"]')) {
+            adjustShedStaffNameWidth(input);
+        } else if (input.matches('#shedStaffTable input[type="number"]')) {
+            adjustShedStaffHoursWidth(input);
+        } else if (input.matches('#headerRow input[type="text"]')) {
+            adjustStandNameWidth(input);
+        }
+    });
+
+    input.addEventListener('input', () => {
+        if (input.matches('#tallyBody td.sheep-type input[type="text"]')) {
             adjustSheepTypeWidth(input);
         } else if (input.matches('#shedStaffTable input[type="text"]')) {
             adjustShedStaffNameWidth(input);
