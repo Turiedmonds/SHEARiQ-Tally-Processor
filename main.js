@@ -4,6 +4,8 @@ const minStands = 1;
 let numStands = defaultStands;
 let runs = defaultRuns;
 let is24HourFormat = true;
+let isNineHourDay = false;
+let promptedNineHour = false;
 
 function adjustStandNameWidth(input) {
     const len = input.value.length || input.placeholder.length || 1;
@@ -134,6 +136,50 @@ function toggleTimeFormat() {
     generateTimeOptions();
     calculateHoursWorked();
 }
+
+function adjustRuns(desired) {
+    const body = document.getElementById('tallyBody');
+    if (!body) return;
+    while (runs < desired) {
+        body.appendChild(createRow(runs));
+        runs++;
+    }
+    while (runs > desired) {
+        if (body.lastElementChild) body.removeChild(body.lastElementChild);
+        runs--;
+    }
+    updateTotals();
+}
+
+function setWorkdayType(nineHour) {
+    isNineHourDay = nineHour;
+    adjustRuns(isNineHourDay ? 5 : 4);
+    calculateHoursWorked();
+    const hours = document.getElementById('hoursWorked');
+    if (hours) updateShedStaffHours(hours.value);
+}
+
+function toggleWorkdayType() {
+    const switchToNine = !isNineHourDay;
+    const msg = switchToNine ? 'Switch to 9-hour day system?' : 'Switch to 8-hour day system?';
+    if (confirm(msg)) {
+        setWorkdayType(switchToNine);
+    }
+}
+
+function handleStartTimeChange() {
+    const start = document.getElementById('startTime');
+    if (start && start.value === '05:00' && !promptedNineHour) {
+        promptedNineHour = true;
+        if (confirm('Is this a 9-hour day?')) {
+            setWorkdayType(true);
+        } else {
+            setWorkdayType(false);
+        }
+    }
+    calculateHoursWorked();
+}
+
 
 function createRow(runIndex) {
     const row = document.createElement("tr");
@@ -301,11 +347,17 @@ function calculateHoursWorked() {
 
     let totalHours = (end - start) / (1000 * 60 * 60);
 
-    const breaks = [
-        ["09:00", "09:30"],
-        ["11:30", "12:30"],
-        ["14:30", "15:00"]
-    ];
+     const breaks = isNineHourDay ?
+        [
+            ["07:00", "08:00"],
+            ["09:45", "10:15"],
+            ["12:00", "13:00"],
+            ["14:45", "15:15"]
+        ] : [
+            ["09:00", "09:30"],
+            ["11:30", "12:30"],
+            ["14:30", "15:00"]
+        ];
 
     breaks.forEach(b => {
         const bStart = new Date("1970-01-01T" + b[0]);
@@ -338,10 +390,12 @@ document.addEventListener("DOMContentLoaded", function () {
     generateTimeOptions();
     const start = document.getElementById("startTime");
     const end = document.getElementById("finishTime");
-   const hours = document.getElementById("hoursWorked");
+    const hours = document.getElementById("hoursWorked");
     const toggle = document.getElementById('timeFormatToggle');
+    const workdayToggle = document.getElementById('workdayToggle');
     if (toggle) toggle.addEventListener('click', toggleTimeFormat);
-    if (start) start.addEventListener("change", calculateHoursWorked);
+    if (workdayToggle) workdayToggle.addEventListener('click', toggleWorkdayType);
+    if (start) start.addEventListener("change", handleStartTimeChange);
     if (end) end.addEventListener("change", calculateHoursWorked);
 if (hours) {
         hours.addEventListener("input", () => updateShedStaffHours(hours.value));
