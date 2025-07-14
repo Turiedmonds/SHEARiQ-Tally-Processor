@@ -1059,7 +1059,7 @@ function exportDailySummaryExcel() {
     const merges = [];
     const headerRows = [];
 
-    [
+    const metadataRows = [
         ['Station Name', data.stationName],
         ['Date', data.date],
         ['Team Leader', data.teamLeader],
@@ -1068,8 +1068,11 @@ function exportDailySummaryExcel() {
         ['Finish Time', data.finishTime],
         ['Hours Worked', data.hoursWorked],
         ['Time System', data.timeSystem]
-    ].forEach(r => rows.push(r));
-
+   ];
+    metadataRows.forEach(r => rows.push(r));
+    for (let i = rows.length - metadataRows.length; i < rows.length; i++) {
+        headerRows.push(i);
+    }
     rows.push([]);
     let r = rows.length;
     rows.push(['Shearer Totals']);
