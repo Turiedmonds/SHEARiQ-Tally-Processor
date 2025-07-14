@@ -488,6 +488,124 @@ function removeShedStaff() {
         body.removeChild(body.lastElementChild);
     }
 }
+
+function clearHighlights() {
+    document.querySelectorAll('.highlight-error').forEach(el => el.classList.remove('highlight-error'));
+}
+
+function saveData() {
+    clearHighlights();
+    const issues = [];
+    const tbody = document.getElementById('tallyBody');
+    const header = document.getElementById('headerRow');
+    if (!tbody || !header) return;
+
+    // Check empty stand columns
+    for (let s = 1; s <= numStands; s++) {
+        const inputs = Array.from(tbody.querySelectorAll(`tr td:nth-child(${s + 1}) input`));
+        const empty = inputs.every(inp => !inp.value.trim());
+        if (empty) {
+            issues.push(`Stand ${s} has no data. Please remove unused stands.`);
+            const headerInput = header.children[s].querySelector('input');
+            if (headerInput) headerInput.classList.add('highlight-error');
+            inputs.forEach(i => i.classList.add('highlight-error'));
+        }
+    }
+
+    // Check empty count rows
+    Array.from(tbody.querySelectorAll('tr')).forEach((row, idx) => {
+        const standInputs = Array.from(row.querySelectorAll('td input[type="number"]')).slice(0, numStands);
+        const sheepType = row.querySelector('.sheep-type input');
+        const allEmpty = standInputs.every(i => !i.value.trim()) && (!sheepType || !sheepType.value.trim());
+        if (allEmpty) {
+            issues.push(`Count ${idx + 1} has no data. Please remove unused counts.`);
+            standInputs.forEach(i => i.classList.add('highlight-error'));
+            if (sheepType) sheepType.classList.add('highlight-error');
+        }
+    });
+
+    // Check empty shed staff rows
+    document.querySelectorAll('#shedStaffTable tr').forEach((row, idx) => {
+        const name = row.querySelector('td:nth-child(1) input');
+        const hours = row.querySelector('td:nth-child(2) input');
+        if (name && hours && !name.value.trim() && !hours.value.trim()) {
+            issues.push(`Shed Staff row ${idx + 1} has no data. Please remove unused rows.`);
+            name.classList.add('highlight-error');
+            hours.classList.add('highlight-error');
+        }
+    });
+
+    if (issues.length) {
+        window.alert(issues.join('\n'));
+        return;
+    }
+
+    // Gather data
+    const data = {
+        date: document.getElementById('date')?.value || '',
+        stationName: document.getElementById('stationName')?.value || '',
+        teamLeader: document.getElementById('teamLeader')?.value || '',
+        combType: document.getElementById('combType')?.value || '',
+        startTime: document.getElementById('startTime')?.value || '',
+        finishTime: document.getElementById('finishTime')?.value || '',
+        hoursWorked: document.getElementById('hoursWorked')?.value || '',
+        timeSystem: isNineHourDay ? '9-hr' : '8-hr',
+        shearerCounts: [],
+        shedStaff: [],
+        sheepTypeTotals: []
+    };
+
+    Array.from(tbody.querySelectorAll('tr')).forEach((row, idx) => {
+        const standVals = [];
+        for (let s = 1; s <= numStands; s++) {
+            const input = row.children[s].querySelector('input[type="number"]');
+            standVals.push(input ? input.value : '');
+        }
+        const sheepTypeInput = row.querySelector('.sheep-type input');
+        if (standVals.some(v => v) || (sheepTypeInput && sheepTypeInput.value.trim())) {
+            data.shearerCounts.push({
+                count: idx + 1,
+                stands: standVals,
+                total: row.querySelector('.run-total')?.innerText || '0',
+                sheepType: sheepTypeInput ? sheepTypeInput.value : ''
+            });
+        }
+    });
+
+    document.querySelectorAll('#shedStaffTable tr').forEach(row => {
+        const name = row.querySelector('td:nth-child(1) input');
+        const hours = row.querySelector('td:nth-child(2) input');
+        if (name && hours && (name.value.trim() || hours.value.trim())) {
+            data.shedStaff.push({ name: name.value, hours: hours.value });
+        }
+    });
+
+    document.querySelectorAll('#sheepTypeTotalsTable tbody tr').forEach(tr => {
+        const cells = tr.querySelectorAll('td');
+        if (cells.length >= 2) {
+            data.sheepTypeTotals.push({ type: cells[0].textContent, total: cells[1].textContent });
+        }
+    });
+
+    const json = JSON.stringify(data, null, 2);
+    localStorage.setItem('sheariq_saved_session', json);
+
+    let fileName = 'Tally_Save.json';
+    if (data.stationName && data.date) {
+        const parts = data.date.split('-');
+        if (parts.length === 3) fileName = `${data.stationName}_${parts[2]}-${parts[1]}-${parts[0]}.json`;
+    }
+
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
 // Register service worker for PWA functionality
 if ('serviceWorker' in navigator) {
  window.addEventListener('load', () => {
