@@ -28,5 +28,5 @@ There is no build step. All files are already in `index.html`, `main.js` and rel
 
 Click **Export Data** to choose an output format:
 
-- **CSV** – produces a comma-separated file containing all tally data.
+**CSV** – generates a summary CSV with station details, sheep type totals per shearer and shed staff hours.
 - **Excel** – generates a formatted `.xlsx` summary (requires browser support for `xlsx.full.min.js`).
