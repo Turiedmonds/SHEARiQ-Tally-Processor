@@ -654,8 +654,7 @@ function exportDailySummaryCSV() {
         ['Comb Type', data.combType],
         ['Start Time', data.startTime],
         ['Finish Time', data.finishTime],
-        // Prefix with apostrophe so CSV opens with left alignment in Excel
-        ['Hours Worked', "'" + data.hoursWorked],
+        ['Hours Worked', data.hoursWorked],
         ['Time System', data.timeSystem]
     ];
     metadataRows.forEach(r => rows.push(r));
@@ -1138,28 +1137,6 @@ function exportDailySummaryExcel() {
         }
     });
 
-// Left align Hours Worked metadata and shed staff values
-    const hoursMetaRow = rows.findIndex(r => r[0] === 'Hours Worked');
-    if (hoursMetaRow !== -1) {
-        const addr = XLSX.utils.encode_cell({ r: hoursMetaRow, c: 1 });
-        const cell = ws[addr];
-        if (cell) {
-            cell.s = cell.s || {};
-            cell.s.alignment = { horizontal: 'left', vertical: 'center' };
-        }
-    }
-
-    const shedHeaderRow = rows.findIndex(r => r[0] === 'Name' && r[1] === 'Hours Worked');
-    if (shedHeaderRow !== -1) {
-        for (let i = shedHeaderRow + 1; i < shedHeaderRow + 1 + data.shedStaff.length; i++) {
-            const addr = XLSX.utils.encode_cell({ r: i, c: 1 });
-            const cell = ws[addr];
-            if (cell) {
-                cell.s = cell.s || {};
-                cell.s.alignment = { horizontal: 'left', vertical: 'center' };
-            }
-        }
-    
   ws['!cols'] = colWidths.map(w => ({ wch: Math.max(w + 2, 15) }));
 
     const wb = XLSX.utils.book_new();
