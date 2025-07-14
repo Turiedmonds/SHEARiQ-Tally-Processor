@@ -606,6 +606,104 @@ function saveData() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 }
+
+function loadPreviousSession() {
+    const json = localStorage.getItem('sheariq_saved_session');
+    if (!json) {
+        alert('No saved session found.');
+        return;
+    }
+    let data;
+    try {
+        data = JSON.parse(json);
+    } catch (e) {
+        alert('No saved session found.');
+        return;
+    }
+    if (!window.confirm('This will replace all current data. Do you want to continue?')) {
+        return;
+    }
+
+    const dateObj = data.date ? new Date(data.date) : null;
+    let formattedDate = data.date || '';
+    if (dateObj && !isNaN(dateObj)) {
+        formattedDate = dateObj.toLocaleDateString('en-NZ', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+    const sessionName = `${formattedDate}${data.stationName ? ' \u2014 ' + data.stationName : ''}`;
+    alert(sessionName);
+
+    // Determine required stands and runs
+    const targetRuns = Array.isArray(data.shearerCounts) ? data.shearerCounts.length : runs;
+    const targetStands = data.shearerCounts && data.shearerCounts[0] ? data.shearerCounts[0].stands.length : numStands;
+
+    while (numStands < targetStands) addStand();
+    while (numStands > targetStands) removeStand();
+    while (runs < targetRuns) addCount();
+    while (runs > targetRuns) removeCount();
+
+    // Clear existing inputs
+    document.querySelectorAll('#tallyBody input').forEach(inp => inp.value = '');
+    document.querySelectorAll('#shedStaffTable input').forEach(inp => inp.value = '');
+
+    // Basic fields
+    const assign = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+    assign('date', data.date);
+    assign('stationName', data.stationName);
+    assign('teamLeader', data.teamLeader);
+    assign('combType', data.combType);
+    assign('startTime', data.startTime);
+    assign('finishTime', data.finishTime);
+    assign('hoursWorked', data.hoursWorked);
+
+    setWorkdayType(data.timeSystem === '9-hr');
+    updateShedStaffHours(data.hoursWorked || '');
+
+    // Populate shearer counts
+    const body = document.getElementById('tallyBody');
+    if (body && Array.isArray(data.shearerCounts)) {
+        data.shearerCounts.forEach((run, idx) => {
+            const row = body.children[idx];
+            if (!row) return;
+            run.stands.forEach((val, sIdx) => {
+                const input = row.children[sIdx + 1]?.querySelector('input[type="number"]');
+                if (input) input.value = val;
+            });
+            const typeInput = row.querySelector('.sheep-type input');
+            if (typeInput) {
+                typeInput.value = run.sheepType || '';
+                adjustSheepTypeWidth(typeInput);
+            }
+        });
+    }
+
+    // Populate shed staff
+    const staffTable = document.getElementById('shedStaffTable');
+    if (staffTable) {
+        staffTable.innerHTML = '';
+        if (Array.isArray(data.shedStaff)) {
+            data.shedStaff.forEach(staff => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = '<td><input placeholder="Staff Name" type="text"/></td><td><input min="0" placeholder="0" step="0.1" type="number"/></td>';
+                const nameInput = tr.querySelector('td:nth-child(1) input');
+                const hoursInput = tr.querySelector('td:nth-child(2) input');
+                if (nameInput) {
+                    nameInput.value = staff.name || '';
+                    adjustShedStaffNameWidth(nameInput);
+                    applyInputHistory(nameInput);
+                }
+                if (hoursInput) {
+                    hoursInput.value = staff.hours || '';
+                    adjustShedStaffHoursWidth(hoursInput);
+                }
+                staffTable.appendChild(tr);
+            });
+        }
+    }
+
+    updateTotals();
+    updateSheepTypeTotals();
+}
+
 // Register service worker for PWA functionality
 if ('serviceWorker' in navigator) {
  window.addEventListener('load', () => {
