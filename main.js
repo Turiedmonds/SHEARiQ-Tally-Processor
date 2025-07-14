@@ -962,8 +962,8 @@ function exportToExcel() {
     XLSX.writeFile(wb, fileName);
 }
 
-function handleExport() {
-    const format = document.getElementById('exportFormat')?.value;
-    if (format === 'excel') exportToExcel();
+function showExportPrompt() {
+    const useExcel = window.confirm('Export as Excel (.xlsx)? Click Cancel for CSV.');
+    if (useExcel) exportToExcel();
     else exportCSV();
 }
