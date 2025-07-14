@@ -140,12 +140,7 @@
   <button id="resetButton" onclick="resetApp()">Reset</button>
   </div>
   <div class="button-row">
-    <label for="exportFormat" style="margin-right: 10px;">Export Format:</label>
-    <select id="exportFormat" class="small-input">
-      <option value="csv">CSV</option>
-      <option value="excel">Excel (.xlsx)</option>
-    </select>
-    <button onclick="handleExport()">Export</button>
+   <button onclick="showExportPrompt()">Export Data</button>
   </div>
    
 <datalist id="sheepTypes">
