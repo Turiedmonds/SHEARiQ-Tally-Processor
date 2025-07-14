@@ -135,10 +135,18 @@
   </tbody>
 </table>
 <div class="button-row">
-  <button id="saveButton" onclick="saveData()">Save</button>
+    <button id="saveButton" onclick="saveData()">Save</button>
 <button id="loadPrevButton" onclick="loadPreviousSession()">Load Previous</button>
   <button id="resetButton" onclick="resetApp()">Reset</button>
-</div>
+  </div>
+  <div class="button-row">
+    <label for="exportFormat" style="margin-right: 10px;">Export Format:</label>
+    <select id="exportFormat" class="small-input">
+      <option value="csv">CSV</option>
+      <option value="excel">Excel (.xlsx)</option>
+    </select>
+    <button onclick="handleExport()">Export</button>
+  </div>
    
 <datalist id="sheepTypes">
   <option value="Other">
