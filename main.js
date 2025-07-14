@@ -20,7 +20,9 @@ function adjustSheepTypeWidth(input) {
 
 function adjustShedStaffNameWidth(input) {
     const len = input.value.length || input.placeholder.length || 1;
-    input.style.width = (len + 1) + 'ch';
+     // add small buffer so the dropdown arrow doesn't hide text
+    const buffer = 1;
+    input.style.width = (len + buffer) + 'ch';
 }
 
 function adjustShedStaffHoursWidth(input) {
@@ -92,6 +94,11 @@ function applyInputHistory(input) {
         }
     });
 
+ // ensure shed staff name width is sized correctly on initialization
+    if (input.closest('#shedStaffTable')) {
+        adjustShedStaffNameWidth(input);
+    }
+    
     input.addEventListener('input', () => {
         if (input.matches('#tallyBody td.sheep-type input[type="text"]')) {
             adjustSheepTypeWidth(input);
