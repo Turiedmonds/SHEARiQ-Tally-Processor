@@ -1106,11 +1106,14 @@ function exportDailySummaryExcel() {
         for (let C = range.s.c; C <= range.e.c; C++) {
             const cell = ws[XLSX.utils.encode_cell({ r: R, c: C })];
             if (!cell) continue;
-            cell.s = cell.s || {};
-            cell.s.border = { top: border, bottom: border, left: border, right: border };
-            cell.s.alignment = { horizontal: 'center' };
+           
             const text = cell.v != null ? String(cell.v) : '';
-            colWidths[C] = Math.max(colWidths[C], text.length);
+            if (text) {
+                cell.s = cell.s || {};
+                cell.s.border = { top: border, bottom: border, left: border, right: border };
+                cell.s.alignment = { horizontal: 'center', vertical: 'center' };
+                colWidths[C] = Math.max(colWidths[C], text.length);
+            }
         }
     }
 
