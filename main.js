@@ -64,6 +64,9 @@ function applyInputHistory(input) {
     } catch (e) {}
 
     input.addEventListener('blur', () => {
+        if (input.closest('#shedStaffTable')) {
+            adjustShedStaffNameWidth(input);
+        }
         const val = input.value.trim();
         if (!val) return;
         let arr;
@@ -85,8 +88,6 @@ function applyInputHistory(input) {
         }
           if (input.matches('#tallyBody td.sheep-type input[type="text"]')) {
             adjustSheepTypeWidth(input);
-        } else if (input.matches('#shedStaffTable input[type="text"]')) {
-            adjustShedStaffNameWidth(input);
         } else if (input.matches('#shedStaffTable input[type="number"]')) {
             adjustShedStaffHoursWidth(input);
         } else if (input.matches('#headerRow input[type="text"]')) {
