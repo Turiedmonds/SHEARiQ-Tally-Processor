@@ -253,7 +253,7 @@ function addStand() {
     for (let i = 0; i < runs; i++) {
         const row = tallyBody.children[i];
         const cell = document.createElement("td");
-        cell.innerHTML = `<input type="number" value="0" onchange="updateTotals()">`;
+       cell.innerHTML = `<input type="number" value="" onchange="updateTotals()">`;
         row.insertBefore(cell, row.children[row.children.length - 2]);
     }
 
