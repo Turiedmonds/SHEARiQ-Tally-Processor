@@ -155,6 +155,11 @@ function setWorkdayType(nineHour) {
     isNineHourDay = nineHour;
     adjustRuns(isNineHourDay ? 5 : 4);
     calculateHoursWorked();
+     const label = document.getElementById('timeSystemLabel');
+    if (label) {
+        label.textContent = isNineHourDay ? 'Time System: 9-Hour Day' : 'Time System: 8-Hour Day';
+        label.style.color = isNineHourDay ? '#ff0' : '#0f0';
+    }
     const hours = document.getElementById('hoursWorked');
     if (hours) updateShedStaffHours(hours.value);
 }
