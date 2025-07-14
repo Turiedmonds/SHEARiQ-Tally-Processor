@@ -1,6 +1,7 @@
 const defaultStands = 6;
 const defaultRuns = 4;
 const minStands = 1;
+const minRuns = 1;
 let numStands = defaultStands;
 let runs = defaultRuns;
 let is24HourFormat = true;
@@ -270,7 +271,7 @@ function addCount() {
 }
 
 function removeCount() {
-    if (runs <= defaultRuns) return;
+  if (runs <= minRuns) return;  
 
     const body = document.getElementById("tallyBody");
     if (body.lastElementChild) {
