@@ -938,22 +938,72 @@ function exportToExcel() {
         alert('Excel export not available');
         return;
     }
+    
     const data = collectExportData();
-    const { rows, boldRows } = buildExportRows(data);
+    const rows = [];
+    const headerRows = [];
+
+    // --- Form details ---
+    [
+        ['Station Name:', data.stationName],
+        ['Date:', data.date],
+        ['Team Leader:', data.teamLeader],
+        ['Comb Type:', data.combType],
+        ['Start Time:', data.startTime],
+        ['Finish Time:', data.finishTime],
+        ['Hours Worked:', data.hoursWorked],
+        ['Time System:', data.timeSystem]
+    ].forEach(r => rows.push(r));
+
+    rows.push([]); // padding row
+
+    // --- Shearer tallies table ---
+    const tallyHeader = ['Count', ...data.stands.map(s => s.name), 'Total', 'Sheep Type'];
+    headerRows.push(rows.length);
+    rows.push(tallyHeader);
+
+    data.shearerCounts.forEach(run => {
+        rows.push([run.count, ...run.stands, run.total, run.sheepType]);
+    });
+
+    rows.push([]); // padding row
+
+    // --- Shed staff table ---
+    headerRows.push(rows.length);
+    rows.push(['Name', 'Hours Worked']);
+    data.shedStaff.forEach(s => {
+        rows.push([s.name, s.hours]);
+    });
+
+    rows.push([]); // padding row
+
+    // --- Sheep type totals ---
+    headerRows.push(rows.length);
+    rows.push(['Sheep Type', 'Total']);
+    data.sheepTypeTotals.forEach(t => rows.push([t.type, t.total]));
     const ws = XLSX.utils.aoa_to_sheet(rows);
-    boldRows.forEach(r => {
-        for (let c = 0; c < rows[r].length; c++) {
-            const cellAddr = XLSX.utils.encode_cell({ r, c });
-            const cell = ws[cellAddr];
+    
+    // Set column widths for readability
+    const maxCols = Math.max(...rows.map(r => r.length));
+    ws['!cols'] = Array.from({ length: maxCols }, () => ({ wch: 20 }));
+
+    // Bold and center header rows
+    headerRows.forEach(r => {
+        for (let c = 0; c < maxCols; c++) {
+            const cell = ws[XLSX.utils.encode_cell({ r, c })];
             if (cell) {
                 cell.s = cell.s || {};
                 cell.s.font = cell.s.font || {};
+                cell.s.alignment = cell.s.alignment || {};
                 cell.s.font.bold = true;
+                cell.s.alignment.horizontal = 'center';
             }
         }
     });
+    
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Tally');
+    
     let fileName = 'export.xlsx';
     if (data.stationName && data.date) {
         const parts = data.date.split('-');
