@@ -799,3 +799,171 @@ if ('serviceWorker' in navigator) {
       .catch(err => console.log('Service Worker registration failed:', err));
   });
 }
+function collectExportData() {
+    const data = {
+        date: document.getElementById('date')?.value || '',
+        stationName: document.getElementById('stationName')?.value || '',
+        teamLeader: document.getElementById('teamLeader')?.value || '',
+        combType: document.getElementById('combType')?.value || '',
+        startTime: document.getElementById('startTime')?.value || '',
+        finishTime: document.getElementById('finishTime')?.value || '',
+        hoursWorked: document.getElementById('hoursWorked')?.value || '',
+        timeSystem: isNineHourDay ? '9-hr' : '8-hr',
+        stands: [],
+        shearerCounts: [],
+        shedStaff: [],
+        sheepTypeTotals: []
+    };
+
+    const header = document.getElementById('headerRow');
+    const tbody = document.getElementById('tallyBody');
+    if (!header || !tbody) return data;
+
+    for (let s = 1; s <= numStands; s++) {
+        const headerInput = header.children[s]?.querySelector('input');
+        const name = headerInput && headerInput.value.trim() ? headerInput.value.trim() : `Stand ${s}`;
+        let hasData = !!(headerInput && headerInput.value.trim());
+        if (!hasData) {
+            for (let r = 0; r < tbody.children.length; r++) {
+                const val = tbody.children[r].children[s]?.querySelector('input[type="number"]')?.value;
+                if (val && val.trim()) { hasData = true; break; }
+            }
+        }
+        if (hasData) {
+            data.stands.push({ index: s, name });
+        }
+    }
+
+    Array.from(tbody.querySelectorAll('tr')).forEach((row, idx) => {
+        let rowHasData = false;
+        const standVals = [];
+        data.stands.forEach(s => {
+            const input = row.children[s.index]?.querySelector('input[type="number"]');
+            const val = input ? input.value : '';
+            if (val.trim()) rowHasData = true;
+            standVals.push(val);
+        });
+        const typeInput = row.querySelector('.sheep-type input');
+        const sheepType = typeInput ? typeInput.value : '';
+        if (sheepType.trim()) rowHasData = true;
+        if (rowHasData) {
+            data.shearerCounts.push({
+                count: idx + 1,
+                stands: standVals,
+                total: row.querySelector('.run-total')?.innerText || '0',
+                sheepType
+            });
+        }
+    });
+
+    document.querySelectorAll('#shedStaffTable tr').forEach(row => {
+        const name = row.querySelector('td:nth-child(1) input');
+        const hours = row.querySelector('td:nth-child(2) input');
+        if (name && hours && (name.value.trim() || hours.value.trim())) {
+            data.shedStaff.push({ name: name.value, hours: hours.value });
+        }
+    });
+
+    document.querySelectorAll('#sheepTypeTotalsTable tbody tr').forEach(tr => {
+        const cells = tr.querySelectorAll('td');
+        if (cells.length >= 2) {
+            data.sheepTypeTotals.push({ type: cells[0].textContent, total: cells[1].textContent });
+        }
+    });
+
+    return data;
+}
+
+function buildExportRows(data) {
+    const rows = [];
+    const boldRows = [];
+    const add = (arr, bold=false) => {
+        rows.push(arr);
+        if (bold) boldRows.push(rows.length - 1);
+    };
+
+    add(['Station Name', data.stationName]);
+    add(['Date', data.date]);
+    add(['Team Leader', data.teamLeader]);
+    add(['Comb Type', data.combType]);
+    add(['Start Time', data.startTime]);
+    add(['Finish Time', data.finishTime]);
+    add(['Hours Worked', data.hoursWorked]);
+    add(['Time System', data.timeSystem]);
+    add([]);
+
+    add(['Shearer Tallies'], true);
+    const headerRow = ['Count #', ...data.stands.map(s => s.name), 'Total', 'Sheep Type'];
+    add(headerRow, true);
+    data.shearerCounts.forEach(run => {
+        const row = [run.count, ...run.stands, run.total, run.sheepType];
+        add(row);
+    });
+    add([]);
+
+    add(['Shed Staff'], true);
+    add(['Name', 'Hours Worked'], true);
+    data.shedStaff.forEach(s => add([s.name, s.hours]));
+    add([]);
+
+    add(['Sheep Type Totals'], true);
+    add(['Sheep Type', 'Total'], true);
+    data.sheepTypeTotals.forEach(t => add([t.type, t.total]));
+
+    return { rows, boldRows };
+}
+
+function exportCSV() {
+    const data = collectExportData();
+    const { rows } = buildExportRows(data);
+    const csv = rows.map(r => r.map(v => `"${String(v ?? '').replace(/"/g,'""')}"`).join(',')).join('\r\n');
+    let fileName = 'export.csv';
+    if (data.stationName && data.date) {
+        const parts = data.date.split('-');
+        if (parts.length === 3) fileName = `${data.stationName}_${parts[2]}-${parts[1]}-${parts[0]}.csv`;
+    }
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+function exportToExcel() {
+    if (typeof XLSX === 'undefined') {
+        alert('Excel export not available');
+        return;
+    }
+    const data = collectExportData();
+    const { rows, boldRows } = buildExportRows(data);
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    boldRows.forEach(r => {
+        for (let c = 0; c < rows[r].length; c++) {
+            const cellAddr = XLSX.utils.encode_cell({ r, c });
+            const cell = ws[cellAddr];
+            if (cell) {
+                cell.s = cell.s || {};
+                cell.s.font = cell.s.font || {};
+                cell.s.font.bold = true;
+            }
+        }
+    });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Tally');
+    let fileName = 'export.xlsx';
+    if (data.stationName && data.date) {
+        const parts = data.date.split('-');
+        if (parts.length === 3) fileName = `${data.stationName}_${parts[2]}-${parts[1]}-${parts[0]}.xlsx`;
+    }
+    XLSX.writeFile(wb, fileName);
+}
+
+function handleExport() {
+    const format = document.getElementById('exportFormat')?.value;
+    if (format === 'excel') exportToExcel();
+    else exportCSV();
+}
