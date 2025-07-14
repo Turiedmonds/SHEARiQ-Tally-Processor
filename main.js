@@ -19,10 +19,8 @@ function adjustSheepTypeWidth(input) {
 }
 
 function adjustShedStaffNameWidth(input) {
-  const len = input.value.length || input.placeholder.length || 0;
-    const buffer = 4; // small buffer so the dropdown arrow doesn't hide text
-    const width = Math.max(len + buffer, 10);
-    input.style.width = width + 'ch';   
+  const len = input.value.length || input.placeholder.length || 1;
+    input.style.width = (len + 1) + 'ch';
 }
 
 function adjustShedStaffHoursWidth(input) {
