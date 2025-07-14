@@ -1012,8 +1012,134 @@ function exportToExcel() {
     XLSX.writeFile(wb, fileName);
 }
 
+function exportDailySummaryExcel() {
+    if (typeof XLSX === 'undefined') {
+        alert('Excel export not available');
+        return;
+    }
+
+    const data = collectExportData();
+    const optionSet = new Set(Array.from(document.querySelectorAll('#sheepTypes option')).map(o => o.value));
+
+    const shearerNames = data.stands.map(s => s.name);
+    const standTotals = new Array(shearerNames.length).fill(0);
+    const totalsByType = {};
+
+    data.shearerCounts.forEach(run => {
+        const type = optionSet.has(run.sheepType) ? run.sheepType : 'Other';
+        if (!totalsByType[type]) totalsByType[type] = new Array(shearerNames.length).fill(0);
+        run.stands.forEach((val, idx) => {
+            const num = parseInt(val) || 0;
+            totalsByType[type][idx] += num;
+            standTotals[idx] += num;
+        });
+    });
+
+    const activeIndices = [];
+    const activeNames = [];
+    standTotals.forEach((t, idx) => {
+        if (t > 0 || shearerNames[idx].trim()) {
+            activeIndices.push(idx);
+            activeNames.push(shearerNames[idx]);
+        }
+    });
+
+    const filteredTotals = {};
+    Object.keys(totalsByType).forEach(type => {
+        const arr = activeIndices.map(i => totalsByType[type][i]);
+        if (arr.some(v => v)) {
+            filteredTotals[type] = arr;
+        }
+    });
+
+    const activeStandTotals = activeIndices.map(i => standTotals[i]);
+    const overallTotal = activeStandTotals.reduce((a, b) => a + b, 0);
+
+    const rows = [];
+    const merges = [];
+    const headerRows = [];
+
+    [
+        ['Station Name', data.stationName],
+        ['Date', data.date],
+        ['Team Leader', data.teamLeader],
+        ['Comb Type', data.combType],
+        ['Start Time', data.startTime],
+        ['Finish Time', data.finishTime],
+        ['Hours Worked', data.hoursWorked],
+        ['Time System', data.timeSystem]
+    ].forEach(r => rows.push(r));
+
+    rows.push([]);
+    let r = rows.length;
+    rows.push(['Shearer Totals']);
+    merges.push({ s: { r, c: 0 }, e: { r, c: activeNames.length + 1 } });
+
+    headerRows.push(rows.length);
+    rows.push(['Sheep Type', ...activeNames, 'Total']);
+
+    Object.keys(filteredTotals).forEach(type => {
+        const arr = filteredTotals[type];
+        const total = arr.reduce((a, b) => a + b, 0);
+        rows.push([type, ...arr, total]);
+    });
+
+    headerRows.push(rows.length);
+    rows.push(['Total Sheep', ...activeStandTotals, overallTotal]);
+
+    rows.push([]);
+    r = rows.length;
+    rows.push(['Shed Staff']);
+    merges.push({ s: { r, c: 0 }, e: { r, c: 1 } });
+
+    headerRows.push(rows.length);
+    rows.push(['Name', 'Hours Worked']);
+    data.shedStaff.forEach(s => rows.push([s.name, s.hours]));
+
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!merges'] = merges;
+
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    const border = { style: 'thin', color: { rgb: '000000' } };
+    for (let R = range.s.r; R <= range.e.r; R++) {
+        for (let C = range.s.c; C <= range.e.c; C++) {
+            const cell = ws[XLSX.utils.encode_cell({ r: R, c: C })];
+            if (!cell) continue;
+            cell.s = cell.s || {};
+            cell.s.border = { top: border, bottom: border, left: border, right: border };
+            if (typeof cell.v === 'number') {
+                cell.s.alignment = { horizontal: 'right' };
+            } else {
+                cell.s.alignment = { horizontal: 'center' };
+            }
+        }
+    }
+
+    headerRows.forEach(hr => {
+        for (let C = range.s.c; C <= range.e.c; C++) {
+            const cell = ws[XLSX.utils.encode_cell({ r: hr, c: C })];
+            if (!cell) continue;
+            cell.s = cell.s || {};
+            cell.s.font = { bold: true };
+            cell.s.fill = { patternType: 'solid', fgColor: { rgb: 'd9d9d9' } };
+        }
+    });
+
+    ws['!cols'] = Array.from({ length: activeNames.length + 2 }, () => ({ wch: 18 }));
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Summary');
+
+    let fileName = 'export.xlsx';
+    if (data.stationName && data.date) {
+        const parts = data.date.split('-');
+        if (parts.length === 3) fileName = `${data.stationName}_${parts[2]}-${parts[1]}-${parts[0]}.xlsx`;
+    }
+    XLSX.writeFile(wb, fileName);
+}
+
 function showExportPrompt() {
     const useExcel = window.confirm('Export as Excel (.xlsx)? Click Cancel for CSV.');
-    if (useExcel) exportToExcel();
+    if (useExcel) exportDailySummaryExcel();
     else exportCSV();
 }
