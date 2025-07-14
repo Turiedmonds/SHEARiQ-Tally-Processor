@@ -19,10 +19,10 @@ function adjustSheepTypeWidth(input) {
 }
 
 function adjustShedStaffNameWidth(input) {
-    const len = input.value.length || input.placeholder.length || 1;
-     // add small buffer so the dropdown arrow doesn't hide text
-    const buffer = 1;
-    input.style.width = (len + buffer) + 'ch';
+  const len = input.value.length || input.placeholder.length || 0;
+    const buffer = 4; // small buffer so the dropdown arrow doesn't hide text
+    const width = Math.max(len + buffer, 10);
+    input.style.width = width + 'ch';   
 }
 
 function adjustShedStaffHoursWidth(input) {
@@ -95,6 +95,12 @@ function applyInputHistory(input) {
         }
     });
 
+input.addEventListener('input', () => {
+        if (input.closest('#shedStaffTable')) {
+            adjustShedStaffNameWidth(input);
+        }
+    });
+    
  // ensure shed staff name width is sized correctly on initialization
     if (input.closest('#shedStaffTable')) {
         adjustShedStaffNameWidth(input);
