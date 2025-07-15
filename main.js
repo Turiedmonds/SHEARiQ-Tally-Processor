@@ -46,13 +46,12 @@ function saveSessionToStorage(session) {
 
     // === NEW: Update dynamic sheep type list ===
     let sheepTypeSet = new Set(JSON.parse(localStorage.getItem('sheep_types') || '[]'));
-    session.shearers.forEach(shearer => {
-        Object.keys(shearer.tallies).forEach(type => {
-            if (type && type.trim() !== '') {
-                sheepTypeSet.add(type.trim());
-            }
+    if (Array.isArray(session.shearerCounts)) {
+        session.shearerCounts.forEach(run => {
+            const type = (run.sheepType || '').trim();
+            if (type) sheepTypeSet.add(type);
         });
-    });
+    }
 
     // Save updated list back to localStorage
     localStorage.setItem('sheep_types', JSON.stringify([...sheepTypeSet]));
@@ -609,11 +608,21 @@ function saveData() {
         finishTime: document.getElementById('finishTime')?.value || '',
         hoursWorked: document.getElementById('hoursWorked')?.value || '',
         timeSystem: isNineHourDay ? '9-hr' : '8-hr',
+        stands: [],
         shearerCounts: [],
         shedStaff: [],
         sheepTypeTotals: []
     };
 
+// Capture shearer names for each stand
+    if (header) {
+        for (let s = 1; s <= numStands; s++) {
+            const input = header.children[s]?.querySelector('input');
+            const name = input && input.value.trim() ? input.value.trim() : `Stand ${s}`;
+            data.stands.push({ index: s, name });
+        }
+    }
+    
     Array.from(tbody.querySelectorAll('tr')).forEach((row, idx) => {
         const standVals = [];
         for (let s = 1; s <= numStands; s++) {
@@ -791,6 +800,19 @@ function loadPreviousSession() {
     document.querySelectorAll('#tallyBody input').forEach(inp => inp.value = '');
     document.querySelectorAll('#shedStaffTable input').forEach(inp => inp.value = '');
 
+// Populate shearer names in header
+    const headerRow = document.getElementById('headerRow');
+    if (headerRow && Array.isArray(data.stands)) {
+        data.stands.forEach((st, idx) => {
+            const input = headerRow.children[idx + 1]?.querySelector('input');
+            if (input) {
+                input.value = st.name || '';
+                adjustStandNameWidth(input);
+                applyInputHistory(input);
+            }
+        });
+    }
+    
     // Basic fields
     const assign = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
     assign('date', data.date);
