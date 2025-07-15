@@ -1316,10 +1316,16 @@ function aggregateStationData(sessions) {
     let grandTotal = 0;
 
     sessions.forEach(s => {
-        const standNames = (s.stands || []).map(st => st.name || '');
-        (s.shearerCounts || []).forEach(run => {
+       if (!Array.isArray(s.stands) || !Array.isArray(s.shearerCounts) || !Array.isArray(s.shedStaff)) {
+            // Skip malformed session entries
+            return;
+        }
+
+        const standNames = s.stands.map(st => st.name || '');
+        s.shearerCounts.forEach(run => {
+            const standsArr = Array.isArray(run.stands) ? run.stands : [];
             const type = SHEEP_TYPES.includes(run.sheepType) ? run.sheepType : 'Other';
-            run.stands.forEach((val, idx) => {
+            standsArr.forEach((val, idx) => {
                 const name = standNames[idx] || `Stand ${idx+1}`;
                 const num = parseInt(val) || 0;
                 if (!shearerData[name]) {
