@@ -151,12 +151,6 @@ function applyInputHistory(input) {
             adjustStandNameWidth(input);
         }
     });
-
-input.addEventListener('input', () => {
-        if (input.closest('#shedStaffTable')) {
-            adjustShedStaffNameWidth(input);
-        }
-    });
     
  // ensure shed staff name width is sized correctly on initialization
     if (input.closest('#shedStaffTable')) {
