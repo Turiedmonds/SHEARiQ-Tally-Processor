@@ -39,6 +39,11 @@ input.small-input { width: auto; }
   width: 200px;
 }
 
+/* Station summary station select width */
+#stationSelect {
+  width: 200px;
+}
+
 /* Team leader input width */
 #teamLeader {
   width: 200px;
@@ -220,6 +225,7 @@ button {
 
   /* Full width inputs on small screens */
   #stationName,
+   #stationSelect,
   #teamLeader,
   #date,
   #combType,
