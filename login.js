@@ -1,9 +1,12 @@
-// Firebase configuration - replace with your own config
+// Firebase configuration 
+// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  // ...other config
+  apiKey: "AIzaSyCuQh49AgKbrMvrxcuwsR8Svy86aP3Fg2Q",
+  authDomain: "sheariq-tally-app.firebaseapp.com",
+  projectId: "sheariq-tally-app",
+  storageBucket: "sheariq-tally-app.firebasestorage.app",
+  messagingSenderId: "201669876235",
+  appId: "1:201669876235:web:379fc4035da99f4b09450e"
 };
 
 firebase.initializeApp(firebaseConfig);
