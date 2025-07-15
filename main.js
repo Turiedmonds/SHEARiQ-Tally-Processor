@@ -46,12 +46,13 @@ function saveSessionToStorage(session) {
 
     // === NEW: Update dynamic sheep type list ===
     let sheepTypeSet = new Set(JSON.parse(localStorage.getItem('sheep_types') || '[]'));
-    session.shearers.forEach(shearer => {
-        Object.keys(shearer.tallies).forEach(type => {
+    if (Array.isArray(session.shearerCounts)) {
+        session.shearerCounts.forEach(run => {
+            const type = run && run.sheepType;
             if (type && type.trim() !== '') {
                 sheepTypeSet.add(type.trim());
             }
-        });
+        }
     });
 
     // Save updated list back to localStorage
