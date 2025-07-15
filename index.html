@@ -7,6 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>SHEAR iQ Tally Processor</title>
 <link rel="stylesheet" href="styles.css">
+   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json" />
 
@@ -19,6 +21,7 @@
     <meta name="theme-color" content="#000000" /> 
 </head>
 <body>
+   <div id="userInfo" style="position:absolute;top:10px;right:10px;font-size:14px;"></div>
    <div id="tabNav" class="tabs">
   <button class="tab-button active" data-view="tallySheetView">Tally Sheet</button>
   <button class="tab-button" data-view="summaryView">Daily Summary</button>
@@ -169,9 +172,26 @@
   <option value="Merino Stud Rams">
 </datalist>
 
- <script src="xlsx.full.min.js"></script>  
+<script src="xlsx.full.min.js"></script>  
 <script src="main.js"></script>
-   </div> <!-- tallySheetView -->
+   <script>
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    projectId: "YOUR_PROJECT_ID",
+    // ...other config
+  };
+  firebase.initializeApp(firebaseConfig);
+  firebase.auth().onAuthStateChanged(user => {
+    const info = document.getElementById('userInfo');
+    if (user) {
+      if (info) info.textContent = `Logged in as: ${user.email}`;
+    } else {
+      window.location.href = 'login.html';
+    }
+  });
+</script>
+  </div> <!-- tallySheetView -->
 
 <div id="summaryView" class="view" style="display:none;">
   <div class="logo-container">
