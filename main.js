@@ -18,6 +18,13 @@ function getSheepTypes() {
     }
 }
 
+const SHEEP_TYPES = getSheepTypes();
+
+function refreshSheepTypes() {
+    const types = getSheepTypes();
+    SHEEP_TYPES.splice(0, SHEEP_TYPES.length, ...types);
+}
+
 function saveSessionToStorage(session) {
     let arr;
     try {
