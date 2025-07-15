@@ -1336,6 +1336,7 @@ function populateStationDropdown() {
 }
 
 function aggregateStationData(sessions) {
+    const optionSet = new Set(Array.from(document.querySelectorAll('#sheepTypes option')).map(o => o.value));
     const shearerData = {};
     const staffData = {};
     const leaders = {};
@@ -1346,13 +1347,16 @@ function aggregateStationData(sessions) {
     sessions.forEach(s => {
         const standNames = (s.stands || []).map(st => st.name || '');
         (s.shearerCounts || []).forEach(run => {
-            const type = SHEEP_TYPES.includes(run.sheepType) ? run.sheepType : 'Other';
+        const rawType = (run.sheepType || '').trim();
+            const type = optionSet.has(rawType) ? rawType : 'Other';
             run.stands.forEach((val, idx) => {
                 const name = standNames[idx] || `Stand ${idx+1}`;
                 const num = parseInt(val) || 0;
                 if (!shearerData[name]) {
                     shearerData[name] = { total: 0 };
-                    SHEEP_TYPES.forEach(t => { shearerData[name][t] = 0; });
+                    }
+                if (!Object.prototype.hasOwnProperty.call(shearerData[name], type)) {
+                    shearerData[name][type] = 0;
                 }
                 shearerData[name][type] += num;
                 shearerData[name].total += num;
@@ -1416,7 +1420,9 @@ function buildStationSummary() {
     if (msg) msg.style.display = sessions.length ? 'none' : 'block';
     const { shearerData, staffData, leaders, combs, totalByType, grandTotal } = aggregateStationData(sessions);
 
-    const activeTypes = SHEEP_TYPES.filter(t => Object.values(shearerData).some(sh => sh[t] > 0));
+    const optionOrder = Array.from(document.querySelectorAll('#sheepTypes option')).map(o => o.value);
+    const activeTypes = optionOrder.filter(t => totalByType[t] > 0);
+    Object.keys(totalByType).forEach(t => { if (!activeTypes.includes(t)) activeTypes.push(t); });
 
     const shearHead = document.querySelector('#stationShearerTable thead tr');
     const shearBody = document.querySelector('#stationShearerTable tbody');
