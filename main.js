@@ -185,6 +185,13 @@ function formatTimeDisplay(h, m, use24) {
     return `${hour12}:${String(m).padStart(2, '0')} ${suffix}`;
 }
 
+function formatDateNZ(dateStr) {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+}
+
 function generateTimeOptions() {
     const startSelect = document.getElementById('startTime');
     const finishSelect = document.getElementById('finishTime');
@@ -1431,13 +1438,19 @@ function buildStationSummary() {
     const leaderBody = document.querySelector('#stationLeaderTable tbody');
     if (leaderBody) {
         const rows = Object.entries(leaders).sort((a,b)=>b[1].total-a[1].total);
-        leaderBody.innerHTML = rows.map(([n,o])=>`<tr><td>${n}</td><td>${o.total}</td><td>${Array.from(o.dates).join(', ')}</td></tr>`).join('');
+        leaderBody.innerHTML = rows.map(([n,o])=>{
+            const dates = Array.from(o.dates).map(formatDateNZ).join(', ');
+            return `<tr><td>${n}</td><td>${o.total}</td><td>${dates}</td></tr>`;
+        }).join('');
     }
 
     const combBody = document.querySelector('#stationCombTable tbody');
     if (combBody) {
         const rows = Object.entries(combs);
-        combBody.innerHTML = rows.map(([c,set])=>`<tr><td>${c}</td><td>${Array.from(set).join(', ')}</td></tr>`).join('');
+        combBody.innerHTML = rows.map(([c,set])=>{
+            const dates = Array.from(set).map(formatDateNZ).join(', ');
+            return `<tr><td>${c}</td><td>${dates}</td></tr>`;
+        }).join('');
     }
 
     const totalHead = document.querySelector('#stationTotalTable thead tr');
