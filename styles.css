@@ -190,3 +190,10 @@ input.small-input { width: auto; }
 .view {
   display: none;
 }
+
+filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
