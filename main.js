@@ -8,6 +8,58 @@ let is24HourFormat = true;
 let isNineHourDay = false;
 let promptedNineHour = false;
 
+// Dynamic sheep type list will be saved to localStorage under 'sheep_types'
+function getSheepTypes() {
+    try {
+        const arr = JSON.parse(localStorage.getItem('sheep_types') || '[]');
+        return Array.isArray(arr) ? arr.sort() : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function saveSessionToStorage(session) {
+    let arr;
+    try {
+        arr = JSON.parse(localStorage.getItem('sheariq_sessions') || '[]');
+    } catch (e) { arr = []; }
+
+    if (!Array.isArray(arr)) arr = [];
+
+    // Find existing entry for same date and station
+    const idx = arr.findIndex(s => s.date === session.date && s.stationName === session.stationName);
+    if (idx >= 0) {
+        arr[idx] = session; // update existing
+    } else {
+        arr.push(session); // add new
+    }
+
+    // Save the updated list of sessions
+    localStorage.setItem('sheariq_sessions', JSON.stringify(arr));
+
+    // === NEW: Update dynamic sheep type list ===
+    let sheepTypeSet = new Set(JSON.parse(localStorage.getItem('sheep_types') || '[]'));
+    session.shearers.forEach(shearer => {
+        Object.keys(shearer.tallies).forEach(type => {
+            if (type && type.trim() !== '') {
+                sheepTypeSet.add(type.trim());
+            }
+        });
+    });
+
+    // Save updated list back to localStorage
+    localStorage.setItem('sheep_types', JSON.stringify([...sheepTypeSet]));
+}
+
+function getStoredSessions() {
+    try {
+        const arr = JSON.parse(localStorage.getItem('sheariq_sessions') || '[]');
+        return Array.isArray(arr) ? arr : [];
+    } catch (e) {
+        return [];
+    }
+}
+
 function adjustStandNameWidth(input) {
     const len = input.value.length || input.placeholder.length || 1;
     input.style.width = (len + 1) + 'ch';
@@ -589,6 +641,7 @@ function saveData() {
 
     const json = JSON.stringify(data, null, 2);
     localStorage.setItem('sheariq_saved_session', json);
+    saveSessionToStorage(data);
 
     let fileName = 'Tally_Save.json';
     if (data.stationName && data.date) {
@@ -1164,6 +1217,10 @@ function showView(id) {
         btn.classList.toggle('active', btn.dataset.view === id);
     });
     if (id === 'summaryView') buildSummary();
+     if (id === 'stationSummaryView') {
+        populateStationDropdown();
+        buildStationSummary();
+    }
 }
 
 function buildSummary() {
@@ -1232,9 +1289,145 @@ function buildSummary() {
     }
 }
 
+function populateStationDropdown() {
+    const select = document.getElementById('stationSelect');
+    if (!select) return;
+    const sessions = getStoredSessions();
+    const current = select.value;
+    const names = Array.from(new Set(sessions.map(s => s.stationName).filter(Boolean)));
+    select.innerHTML = '<option value=""></option>' + names.map(n => `<option value="${n}">${n}</option>`).join('');
+    if (current) select.value = current;
+}
+
+function aggregateStationData(sessions) {
+    const shearerData = {};
+    const staffData = {};
+    const leaders = {};
+    const combs = {};
+    const totalByType = {};
+    let grandTotal = 0;
+
+    sessions.forEach(s => {
+        const standNames = (s.stands || []).map(st => st.name || '');
+        (s.shearerCounts || []).forEach(run => {
+            const type = SHEEP_TYPES.includes(run.sheepType) ? run.sheepType : 'Other';
+            run.stands.forEach((val, idx) => {
+                const name = standNames[idx] || `Stand ${idx+1}`;
+                const num = parseInt(val) || 0;
+                if (!shearerData[name]) {
+                    shearerData[name] = { total: 0 };
+                    SHEEP_TYPES.forEach(t => { shearerData[name][t] = 0; });
+                }
+                shearerData[name][type] += num;
+                shearerData[name].total += num;
+                totalByType[type] = (totalByType[type] || 0) + num;
+                grandTotal += num;
+            });
+        });
+
+        if (Array.isArray(s.shedStaff)) {
+            s.shedStaff.forEach(st => {
+                const h = parseFloat(st.hours) || 0;
+                if (!st.name) return;
+                staffData[st.name] = (staffData[st.name] || 0) + h;
+            });
+        }
+
+        if (s.teamLeader) {
+            const totalSheep = (s.shearerCounts || []).reduce((a,b) => a + (parseInt(b.total)||0), 0);
+            if (!leaders[s.teamLeader]) leaders[s.teamLeader] = { total: 0, dates: new Set() };
+            leaders[s.teamLeader].total += totalSheep;
+            leaders[s.teamLeader].dates.add(s.date);
+        }
+
+        if (s.combType) {
+            if (!combs[s.combType]) combs[s.combType] = new Set();
+            combs[s.combType].add(s.date);
+        }
+    });
+
+    return { shearerData, staffData, leaders, combs, totalByType, grandTotal };
+}
+
+function buildStationSummary() {
+    const station = document.getElementById('stationSelect')?.value || '';
+    const start = document.getElementById('summaryStart')?.value;
+    const end = document.getElementById('summaryEnd')?.value;
+    const sessions = getStoredSessions().filter(s => {
+        if (station && s.stationName !== station) return false;
+        if (start && s.date < start) return false;
+        if (end && s.date > end) return false;
+        return true;
+    });
+    const { shearerData, staffData, leaders, combs, totalByType, grandTotal } = aggregateStationData(sessions);
+
+    const activeTypes = SHEEP_TYPES.filter(t => Object.values(shearerData).some(sh => sh[t] > 0));
+
+    const shearHead = document.querySelector('#stationShearerTable thead tr');
+    const shearBody = document.querySelector('#stationShearerTable tbody');
+    if (shearHead && shearBody) {
+        shearHead.innerHTML = '<th>Shearer</th>' + activeTypes.map(t=>`<th>${t}</th>`).join('') + '<th>Total</th>';
+        const rows = Object.entries(shearerData).sort((a,b)=>b[1].total-a[1].total);
+        shearBody.innerHTML = rows.map(([name,data]) => {
+            const cells = activeTypes.map(t=>`<td>${data[t]}</td>`).join('');
+            return `<tr><td>${name}</td>${cells}<td>${data.total}</td></tr>`;
+        }).join('');
+    }
+
+    const staffBody = document.querySelector('#stationStaffTable tbody');
+    if (staffBody) {
+        const rows = Object.entries(staffData).sort((a,b)=>b[1]-a[1]);
+        staffBody.innerHTML = rows.map(([n,h])=>`<tr><td>${n}</td><td>${h}</td></tr>`).join('');
+    }
+
+    const leaderBody = document.querySelector('#stationLeaderTable tbody');
+    if (leaderBody) {
+        const rows = Object.entries(leaders).sort((a,b)=>b[1].total-a[1].total);
+        leaderBody.innerHTML = rows.map(([n,o])=>`<tr><td>${n}</td><td>${o.total}</td><td>${Array.from(o.dates).join(', ')}</td></tr>`).join('');
+    }
+
+    const combBody = document.querySelector('#stationCombTable tbody');
+    if (combBody) {
+        const rows = Object.entries(combs);
+        combBody.innerHTML = rows.map(([c,set])=>`<tr><td>${c}</td><td>${Array.from(set).join(', ')}</td></tr>`).join('');
+    }
+
+    const totalHead = document.querySelector('#stationTotalTable thead tr');
+    const totalBody = document.querySelector('#stationTotalTable tbody');
+    if (totalHead && totalBody) {
+        totalHead.innerHTML = activeTypes.map(t=>`<th>${t}</th>`).join('') + '<th>Grand Total</th>';
+        const cells = activeTypes.map(t=>`<td>${totalByType[t]||0}</td>`).join('');
+        totalBody.innerHTML = `<tr>${cells}<td>${grandTotal}</td></tr>`;
+    }
+}
+
+function exportStationSummaryCSV() {
+    buildStationSummary();
+    const table = document.getElementById('stationShearerTable');
+    if (!table) return;
+    let csv = '';
+    table.querySelectorAll('tr').forEach(tr => {
+        const row = Array.from(tr.children).map(td => '"' + td.textContent.replace(/"/g,'""') + '"').join(',');
+        csv += row + '\r\n';
+    });
+    const staffRows = document.querySelector('#stationStaffTable tbody')?.innerText || '';
+    if (staffRows) csv += '\r\nShed Staff\r\n' + staffRows.split('\n').map(r=>`"${r.replace(/"/g,'""')}"`).join('\r\n');
+    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'station_summary.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.tab-button').forEach(btn => {
         btn.addEventListener('click', () => showView(btn.dataset.view));
     });
+    document.getElementById('stationSummaryApply')?.addEventListener('click', buildStationSummary);
+    document.getElementById('stationSummaryExport')?.addEventListener('click', exportStationSummaryCSV);
     showView('tallySheetView');
 });
