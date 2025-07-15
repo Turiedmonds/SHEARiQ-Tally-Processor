@@ -1,8 +1,10 @@
-const CACHE_NAME = 'sheariq-pwa-v1';
+const CACHE_NAME = 'sheariq-pwa-v2';
 const FILES_TO_CACHE = [
   'index.html',
+  'login.html',
   'styles.css',
   'main.js',
+  'login.js',
   'xlsx.full.min.js',
   'logo.png',
   'manifest.json',
