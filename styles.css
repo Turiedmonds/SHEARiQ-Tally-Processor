@@ -25,7 +25,12 @@ table { border-collapse: collapse; width: 100%; margin-top: 20px; }
 }
 th, td { border: 1px solid #555; padding: 8px; text-align: center; }
 th { background: #222; }
-input[type="number"], input[type="text"], select { width: 100%; padding: 6px; box-sizing: border-box; }
+/* Increase input padding for touch devices */
+input[type="number"], input[type="text"], select {
+  width: 100%;
+  padding: 8px 6px;
+  box-sizing: border-box;
+}
 /* Small inputs align with the date field size */
 input.small-input { width: auto; }
 
@@ -60,9 +65,15 @@ input.small-input { width: auto; }
 }
 
 /* Hours worked input width */
+
 #hoursWorked {
   width: 100px;
    text-align: left;
+}
+
+/* Base button styling for easier tapping */
+button {
+  padding: 12px 16px;
 }
 
 /* Shared styling for button rows */
@@ -72,7 +83,7 @@ input.small-input { width: auto; }
 }
 
 .button-row button {
-  padding: 8px 12px;
+  padding: 12px 16px;
   background: #444;
   color: #fff;
   border: none;
@@ -80,7 +91,7 @@ input.small-input { width: auto; }
 }
 
 .toggle-button {
-  padding: 8px 12px;
+  padding: 12px 16px;
   background: #444;
   color: #fff;
   border: none;
@@ -170,6 +181,72 @@ input.small-input { width: auto; }
   .logo-container h2 {
     font-size: 1.2em;
   }
+  .logo-container img {
+    max-width: 120px;
+  }
+
+  /* Stack flex-based form rows */
+  #tallySheetView div[style*="display: flex"] {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* Button rows stack vertically */
+  .button-row {
+    flex-direction: column;
+  }
+  .button-row button {
+    width: 100%;
+    margin: 0 0 10px 0;
+  }
+  .button-row button + button {
+    margin-left: 0;
+  }
+
+  .toggle-button {
+    width: 100%;
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  .filters {
+    flex-direction: column;
+  }
+  .filters > * {
+    width: 100%;
+    max-width: 300px;
+    margin-bottom: 10px;
+  }
+
+  /* Full width inputs on small screens */
+  #stationName,
+  #teamLeader,
+  #date,
+  #combType,
+  #startTime,
+  #finishTime,
+  #hoursWorked {
+    width: 100%;
+    max-width: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  table {
+    display: block;
+    overflow-x: auto;
+  }
+
+  .tab-button,
+  .toggle-button,
+  .section h2,
+  label {
+    font-size: 0.9em;
+  }
+
+  .section {
+    margin-bottom: 16px;
+  }
 }
 
 .highlight-error {
@@ -183,7 +260,7 @@ input.small-input { width: auto; }
   margin-bottom: 10px;
 }
 .tab-button {
-  padding: 8px 12px;
+  padding: 12px 16px;
   background: #444;
   color: #fff;
   border: 1px solid #555;
@@ -197,7 +274,7 @@ input.small-input { width: auto; }
   display: none;
 }
 
-filters {
+.filters {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
