@@ -1155,3 +1155,86 @@ function showExportPrompt() {
     if (useExcel) exportDailySummaryExcel();
     else exportDailySummaryCSV();
 }
+
+function showView(id) {
+    document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
+    const view = document.getElementById(id);
+    if (view) view.style.display = 'block';
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.view === id);
+    });
+    if (id === 'summaryView') buildSummary();
+}
+
+function buildSummary() {
+    const headerRow = document.getElementById('headerRow');
+    const tallyBody = document.getElementById('tallyBody');
+    if (!headerRow || !tallyBody) return;
+
+    const numStandsLocal = numStands;
+    const names = [];
+    for (let i = 1; i <= numStandsLocal; i++) {
+        const input = headerRow.children[i]?.querySelector('input');
+        const name = input && input.value.trim() ? input.value.trim() : `Stand ${i}`;
+        names.push(name);
+    }
+
+    const optionSet = new Set(Array.from(document.querySelectorAll('#sheepTypes option')).map(o => o.value));
+    const totals = {};
+    const standTotals = new Array(numStandsLocal).fill(0);
+    Array.from(tallyBody.querySelectorAll('tr')).forEach(row => {
+        const typeInput = row.querySelector('.sheep-type input');
+        const typeRaw = typeInput ? typeInput.value.trim() : '';
+        if (!typeRaw) return;
+        const type = optionSet.has(typeRaw) ? typeRaw : 'Other';
+        if (!totals[type]) totals[type] = new Array(numStandsLocal).fill(0);
+        for (let s = 1; s <= numStandsLocal; s++) {
+            const val = parseInt(row.children[s]?.querySelector('input')?.value) || 0;
+            totals[type][s-1] += val;
+            standTotals[s-1] += val;
+        }
+    });
+
+    const types = Object.keys(totals);
+    const theadRow = document.querySelector('#summaryTable thead tr');
+    const tbody = document.getElementById('summaryTableBody');
+    if (!theadRow || !tbody) return;
+    theadRow.innerHTML = '<th>Shearer</th>' + types.map(t => `<th>${t}</th>`).join('') + '<th>Total</th>';
+    tbody.innerHTML = '';
+
+    names.forEach((name, idx) => {
+        let rowTotal = 0;
+        const cells = types.map(t => {
+            const val = totals[t] ? totals[t][idx] : 0;
+            rowTotal += val;
+            return `<td>${val}</td>`;
+        }).join('');
+        tbody.innerHTML += `<tr><td>${name}</td>${cells}<td>${rowTotal}</td></tr>`;
+    });
+
+    const totalCells = types.map(t => {
+        const sum = totals[t].reduce((a,b) => a + b, 0);
+        return `<th>${sum}</th>`;
+    }).join('');
+    const grand = standTotals.reduce((a,b) => a + b, 0);
+    tbody.innerHTML += `<tr><th>Total Sheep</th>${totalCells}<th>${grand}</th></tr>`;
+
+    const staffBody = document.getElementById('summaryShedStaff');
+    if (staffBody) {
+        staffBody.innerHTML = '';
+        document.querySelectorAll('#shedStaffTable tr').forEach(row => {
+            const name = row.querySelector('td:nth-child(1) input')?.value || '';
+            const hours = row.querySelector('td:nth-child(2) input')?.value || '';
+            if (name.trim() || hours.trim()) {
+                staffBody.innerHTML += `<tr><td>${name}</td><td>${hours}</td></tr>`;
+            }
+        });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.addEventListener('click', () => showView(btn.dataset.view));
+    });
+    showView('tallySheetView');
+});
