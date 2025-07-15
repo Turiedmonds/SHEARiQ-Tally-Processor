@@ -8,10 +8,6 @@ let is24HourFormat = true;
 let isNineHourDay = false;
 let promptedNineHour = false;
 
-// Set to true to output detailed session information in the console when
-// building station summaries. Useful for debugging missing data.
-const DEBUG_STATION_SESSIONS = false;
-
 // Dynamic sheep type list will be saved to localStorage under 'sheep_types'
 function getSheepTypes() {
     try {
@@ -50,13 +46,12 @@ function saveSessionToStorage(session) {
 
     // === NEW: Update dynamic sheep type list ===
     let sheepTypeSet = new Set(JSON.parse(localStorage.getItem('sheep_types') || '[]'));
-    if (Array.isArray(session.shearerCounts)) {
-        session.shearerCounts.forEach(run => {
-            const type = run && run.sheepType;
+    session.shearers.forEach(shearer => {
+        Object.keys(shearer.tallies).forEach(type => {
             if (type && type.trim() !== '') {
                 sheepTypeSet.add(type.trim());
             }
-        }
+        });
     });
 
     // Save updated list back to localStorage
@@ -72,42 +67,6 @@ function getStoredSessions() {
     }
 }
 
-// Debug helper that prints sessions for a station and date range to the console
-// to help trace missing data.
-function debugStationSessions(station, start, end) {
-    let sessions;
-    try {
-        sessions = JSON.parse(localStorage.getItem('sheariq_sessions') || '[]');
-    } catch (e) {
-        sessions = [];
-    }
-    if (!Array.isArray(sessions)) sessions = [];
-
-    const filtered = sessions.filter(s => {
-        const st = (s.stationName || '').trim().toLowerCase();
-        if (station && st !== station.trim().toLowerCase()) return false;
-        if (start && s.date < start) return false;
-        if (end && s.date > end) return false;
-        return true;
-    });
-
-    console.log('Debugging sessions', { station, start, end, count: filtered.length });
-    filtered.forEach(sess => {
-        const hasTallies = Array.isArray(sess.shearerCounts);
-        const hasStaff = Array.isArray(sess.shedStaff);
-        const tallies = hasTallies ? sess.shearerCounts.map(r => r.total).join(', ') : 'N/A';
-        const hours = hasStaff ? sess.shedStaff.reduce((a,b)=>a+(parseFloat(b.hours)||0),0) : 0;
-        console.log(`${sess.stationName} ${sess.date}`, {
-            tallies,
-            shedStaffHours: hours,
-            teamLeader: sess.teamLeader,
-            combType: sess.combType
-        });
-        if (!hasTallies) console.warn('Session missing shearerCounts array:', sess);
-        if (!hasStaff) console.warn('Session missing shedStaff array:', sess);
-    });
-}
-    
 function adjustStandNameWidth(input) {
     const len = input.value.length || input.placeholder.length || 1;
     input.style.width = (len + 1) + 'ch';
@@ -1356,16 +1315,10 @@ function aggregateStationData(sessions) {
     let grandTotal = 0;
 
     sessions.forEach(s => {
-       if (!Array.isArray(s.stands) || !Array.isArray(s.shearerCounts) || !Array.isArray(s.shedStaff)) {
-            // Skip malformed session entries
-            return;
-        }
-
-        const standNames = s.stands.map(st => st.name || '');
-        s.shearerCounts.forEach(run => {
-            const standsArr = Array.isArray(run.stands) ? run.stands : [];
+        const standNames = (s.stands || []).map(st => st.name || '');
+        (s.shearerCounts || []).forEach(run => {
             const type = SHEEP_TYPES.includes(run.sheepType) ? run.sheepType : 'Other';
-            standsArr.forEach((val, idx) => {
+            run.stands.forEach((val, idx) => {
                 const name = standNames[idx] || `Stand ${idx+1}`;
                 const num = parseInt(val) || 0;
                 if (!shearerData[name]) {
@@ -1430,10 +1383,6 @@ function buildStationSummary() {
     
     console.log('Filtered sessions:', sessions);
 
-if (DEBUG_STATION_SESSIONS) {
-        debugStationSessions(station, start, end);
-    }
-    
     const msg = document.getElementById('stationNoData');
     if (msg) msg.style.display = sessions.length ? 'none' : 'block';
     const { shearerData, staffData, leaders, combs, totalByType, grandTotal } = aggregateStationData(sessions);
