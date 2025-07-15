@@ -605,82 +605,14 @@ function saveData() {
         return;
     }
 
-    // Gather data
-    const data = {
-        date: document.getElementById('date')?.value || '',
-        stationName: document.getElementById('stationName')?.value.trim() || '',
-        teamLeader: document.getElementById('teamLeader')?.value || '',
-        combType: document.getElementById('combType')?.value || '',
-        startTime: document.getElementById('startTime')?.value || '',
-        finishTime: document.getElementById('finishTime')?.value || '',
-        hoursWorked: document.getElementById('hoursWorked')?.value || '',
-        timeSystem: isNineHourDay ? '9-hr' : '8-hr',
-        stands: [],
-        shearerCounts: [],
-        shedStaff: [],
-        sheepTypeTotals: []
-    };
-
-// Capture shearer names for each stand
-    if (header) {
-        for (let s = 1; s <= numStands; s++) {
-            const input = header.children[s]?.querySelector('input');
-            const name = input && input.value.trim() ? input.value.trim() : `Stand ${s}`;
-            data.stands.push({ index: s, name });
-        }
-    }
-    
-    Array.from(tbody.querySelectorAll('tr')).forEach((row, idx) => {
-        const standVals = [];
-        for (let s = 1; s <= numStands; s++) {
-            const input = row.children[s].querySelector('input[type="number"]');
-            standVals.push(input ? input.value : '');
-        }
-        const sheepTypeInput = row.querySelector('.sheep-type input');
-        if (standVals.some(v => v) || (sheepTypeInput && sheepTypeInput.value.trim())) {
-            data.shearerCounts.push({
-                count: idx + 1,
-                stands: standVals,
-                total: row.querySelector('.run-total')?.innerText || '0',
-                sheepType: sheepTypeInput ? sheepTypeInput.value : ''
-            });
-        }
-    });
-
-    document.querySelectorAll('#shedStaffTable tr').forEach(row => {
-        const name = row.querySelector('td:nth-child(1) input');
-        const hours = row.querySelector('td:nth-child(2) input');
-        if (name && hours && (name.value.trim() || hours.value.trim())) {
-            data.shedStaff.push({ name: name.value, hours: hours.value });
-        }
-    });
-
-    document.querySelectorAll('#sheepTypeTotalsTable tbody tr').forEach(tr => {
-        const cells = tr.querySelectorAll('td');
-        if (cells.length >= 2) {
-            data.sheepTypeTotals.push({ type: cells[0].textContent, total: cells[1].textContent });
-        }
-    });
+   // Collect current session data
+    const data = collectExportData();
 
     const json = JSON.stringify(data, null, 2);
     localStorage.setItem('sheariq_saved_session', json);
     saveSessionToStorage(data);
 
-    let fileName = 'Tally_Save.json';
-    if (data.stationName && data.date) {
-        const parts = data.date.split('-');
-        if (parts.length === 3) fileName = `${data.stationName}_${parts[2]}-${parts[1]}-${parts[0]}.json`;
-    }
-
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    alert('Session saved successfully to local storage.');
 }
 
 function exportDailySummaryCSV() {
