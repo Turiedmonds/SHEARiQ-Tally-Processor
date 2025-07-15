@@ -595,7 +595,7 @@ function saveData() {
     // Gather data
     const data = {
         date: document.getElementById('date')?.value || '',
-        stationName: document.getElementById('stationName')?.value || '',
+        stationName: document.getElementById('stationName')?.value.trim() || '',
         teamLeader: document.getElementById('teamLeader')?.value || '',
         combType: document.getElementById('combType')?.value || '',
         startTime: document.getElementById('startTime')?.value || '',
@@ -1350,15 +1350,34 @@ function aggregateStationData(sessions) {
 }
 
 function buildStationSummary() {
-    const station = document.getElementById('stationSelect')?.value || '';
-    const start = document.getElementById('summaryStart')?.value;
-    const end = document.getElementById('summaryEnd')?.value;
-    const sessions = getStoredSessions().filter(s => {
-        if (station && s.stationName !== station) return false;
+    const stationInput = document.getElementById('stationSelect');
+    const startInput = document.getElementById('summaryStart');
+    const endInput = document.getElementById('summaryEnd');
+
+    const station = stationInput?.value.trim() || '';
+    const start = startInput?.value;
+    const end = endInput?.value;
+
+    console.log('Selected station:', station);
+    console.log('Selected start:', start, 'end:', end);
+
+    const allSessions = getStoredSessions();
+    console.log('Stored station names:', allSessions.map(s => s.stationName));
+    console.log('Stored session dates:', allSessions.map(s => s.date));
+
+    const sessions = allSessions.filter(s => {
+        const storedStation = (s.stationName || '').trim().toLowerCase();
+        const targetStation = station.toLowerCase();
+        if (station && storedStation !== targetStation) return false;
         if (start && s.date < start) return false;
         if (end && s.date > end) return false;
         return true;
     });
+    
+    console.log('Filtered sessions:', sessions);
+
+    const msg = document.getElementById('stationNoData');
+    if (msg) msg.style.display = sessions.length ? 'none' : 'block';
     const { shearerData, staffData, leaders, combs, totalByType, grandTotal } = aggregateStationData(sessions);
 
     const activeTypes = SHEEP_TYPES.filter(t => Object.values(shearerData).some(sh => sh[t] > 0));
